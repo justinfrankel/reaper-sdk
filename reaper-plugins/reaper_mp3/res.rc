@@ -1,0 +1,128 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_MP3ITEMINFO DIALOG DISCARDABLE  0, 0, 222, 196
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "MP3 File Properties"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "Filename:",IDC_STATIC,7,9,38,8
+    EDITTEXT        IDC_NAME,7,21,208,12,ES_AUTOHSCROLL | ES_READONLY
+    LTEXT           "File info:",IDC_STATIC,7,38,27,8
+    EDITTEXT        IDC_INFO,7,48,208,111,ES_MULTILINE | ES_AUTOVSCROLL |
+                    ES_AUTOHSCROLL | WS_VSCROLL | WS_HSCROLL | ES_READONLY
+    DEFPUSHBUTTON   "Close",IDOK,85,175,50,14
+    CONTROL         "Correct compressor latency/length (recommended)",
+                    IDC_CHECK1,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,161,
+                    175,10
+END
+
+IDD_MP3SINK_CFG DIALOG DISCARDABLE  0, 0, 288, 52
+STYLE DS_CONTROL | WS_CHILD
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "Mode:",IDC_STATIC,9,4,21,8
+    COMBOBOX        IDC_MODE,36,2,127,30,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "Quality:",IDC_QUALITY_LBL,35,20,24,8
+    LTEXT           "Bitrate:",IDC_BITRATE_LBL,36,34,23,8
+    COMBOBOX        IDC_QUALITY,65,17,53,30,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    COMBOBOX        IDC_BITRATE,65,32,53,30,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "approximate",IDC_QUALITY_APPROX,125,19,39,8
+    LTEXT           "approximate",IDC_BITRATE_APPROX,125,34,39,8
+    COMBOBOX        IDC_COMBO1,172,2,110,67,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    CONTROL         "Do not allow joint stereo",IDC_STEREO_MODE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,172,17,110,10
+    CONTROL         "Write ReplayGain tag",IDC_REPLAY_GAIN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,172,28,110,10
+    RTEXT           "(lame version)",IDC_LAMEVER,172,40,109,8
+END
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_MP3ITEMINFO, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 215
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 189
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

@@ -1,0 +1,258 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_SURFACEEDIT_MCU DIALOG DISCARDABLE  0, 0, 268, 77
+STYLE DS_CONTROL | WS_CHILD
+FONT 8, "MS Shell Dlg"
+BEGIN
+    RTEXT           "MIDI input:",IDC_STATIC,23,6,56,8
+    COMBOBOX        IDC_COMBO2,81,4,181,105,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    RTEXT           "MIDI output:",IDC_STATIC,23,23,56,8
+    COMBOBOX        IDC_COMBO3,81,21,181,105,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    RTEXT           "Surface offset (tracks):",IDC_EDIT1_LBL,4,42,72,8
+    EDITTEXT        IDC_EDIT1,81,41,24,12,ES_AUTOHSCROLL
+    RTEXT           "Size tweak:",IDC_EDIT2_LBL,30,58,47,8
+    EDITTEXT        IDC_EDIT2,80,55,24,12,ES_AUTOHSCROLL
+    LTEXT           "(leave at 9 unless you know what you're doing)",
+                    IDC_EDIT2_LBL2,108,58,148,8
+END
+
+IDD_SURFACEEDIT_MCU1 DIALOG DISCARDABLE  0, 0, 268, 103
+STYLE DS_CONTROL | WS_CHILD
+FONT 8, "MS Shell Dlg"
+BEGIN
+    RTEXT           "MIDI input:",IDC_STATIC,23,6,56,8
+    COMBOBOX        IDC_COMBO2,81,4,181,105,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    RTEXT           "MIDI output:",IDC_STATIC,23,23,56,8
+    COMBOBOX        IDC_COMBO3,81,21,181,105,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    RTEXT           "Surface offset (tracks):",IDC_EDIT1_LBL,4,37,72,8
+    EDITTEXT        IDC_EDIT1,81,36,24,12,ES_AUTOHSCROLL
+    RTEXT           "Size tweak:",IDC_EDIT2_LBL,30,53,47,8
+    EDITTEXT        IDC_EDIT2,80,50,24,12,ES_AUTOHSCROLL
+    LTEXT           "(leave at 9 unless you know what you're doing)",
+                    IDC_EDIT2_LBL2,108,52,148,8
+    CONTROL         "Ignore fader moves when fader is not being touched",
+                    IDC_CHECK1,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,4,67,
+                    177,10
+    CONTROL         "Map F1-F8 to go to markers",IDC_CHECK2,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,4,78,102,10
+    CONTROL         "Ignore global bank offsets (always map to tracks specified)",
+                    IDC_CHECK3,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,4,89,
+                    199,10
+END
+
+IDD_SURFACEEDIT_OSC DIALOG DISCARDABLE  0, 0, 268, 133
+STYLE DS_CONTROL | WS_CHILD
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "Device name:",IDC_STATIC,4,7,45,8
+    EDITTEXT        IDC_EDIT4,52,4,74,13,ES_AUTOHSCROLL
+    LTEXT           "Pattern config:",IDC_STATIC,130,7,47,8
+    COMBOBOX        IDC_COMBO1,179,4,85,30,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "Mode:",IDC_STATIC,4,23,21,8
+    COMBOBOX        IDC_COMBO4,30,21,145,30,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    RTEXT           "Device port:",IDC_DEVICE_LBL,15,38,54,8
+    EDITTEXT        IDC_EDIT3,73,36,30,13,ES_AUTOHSCROLL
+    RTEXT           "Device IP:",IDC_DEVICE_LBL2,110,38,34,8
+    EDITTEXT        IDC_EDIT2,148,36,63,13,ES_AUTOHSCROLL
+    RTEXT           "Local listen port:",IDC_LISTEN_LBL,15,54,54,8
+    EDITTEXT        IDC_EDIT1,73,52,30,13,ES_AUTOHSCROLL
+    RTEXT           "Local IP:",IDC_LISTEN_LBL2,110,53,34,8
+    EDITTEXT        IDC_EDIT6,148,52,63,13,ES_AUTOHSCROLL | ES_READONLY
+    PUSHBUTTON      "Listen...",IDC_BUTTON2,216,51,44,14
+    CONTROL         "Allow binding messages to REAPER actions and FX learn",
+                    IDC_CHECK3,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,4,73,
+                    197,10
+    LTEXT           "If outgoing packets are dropped by the network, try increasing these values:",
+                    IDC_STATIC,4,105,240,8
+    LTEXT           "Outgoing max packet size:",IDC_STATIC,4,118,85,8
+    EDITTEXT        IDC_EDIT7,92,116,30,13,ES_AUTOHSCROLL
+    LTEXT           "Wait between packets:",IDC_STATIC,127,118,74,8
+    EDITTEXT        IDC_EDIT8,206,116,30,13,ES_AUTOHSCROLL
+    LTEXT           "ms",IDC_STATIC,240,118,10,8
+END
+
+IDD_OSC_LISTEN DIALOGEX 0, 0, 218, 100
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_TOOLWINDOW
+CAPTION "OSC listen"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_EDIT1,7,7,204,86,ES_MULTILINE | ES_AUTOVSCROLL | 
+                    ES_READONLY | WS_VSCROLL | WS_HSCROLL
+END
+
+IDD_SURFACEEDIT_HUI DIALOG DISCARDABLE  0, 0, 268, 77
+STYLE DS_CONTROL | WS_CHILD
+FONT 8, "MS Shell Dlg"
+BEGIN
+    RTEXT           "MIDI input:",IDC_STATIC,23,6,56,8
+    COMBOBOX        IDC_COMBO2,81,4,181,105,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    RTEXT           "MIDI output:",IDC_STATIC,23,23,56,8
+    COMBOBOX        IDC_COMBO3,81,21,181,105,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    RTEXT           "Surface offset (tracks):",IDC_EDIT1_LBL,4,43,72,8
+    EDITTEXT        IDC_EDIT1,81,41,24,12,ES_AUTOHSCROLL
+    RTEXT           "Fader count:",IDC_EDIT2_LBL,30,58,47,8
+    EDITTEXT        IDC_EDIT2,81,56,24,12,ES_AUTOHSCROLL
+    LTEXT           "(usually 8, but can be more for multichannel HUI)",
+                    IDC_EDIT2_LBL2,108,58,154,8
+    LTEXT           "(0: first fader=master. 1: first fader=first track)",
+                    IDC_STATIC,108,43,140,8
+END
+
+IDD_SURFACEEDIT_WWW DIALOG DISCARDABLE  0, 0, 268, 133
+STYLE DS_CONTROL | WS_CHILD
+FONT 8, "MS Shell Dlg"
+BEGIN
+    CONTROL         "Run web server on port:",IDC_CHECK1,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,4,4,92,10
+    EDITTEXT        IDC_EDIT1,98,3,30,13,ES_AUTOHSCROLL
+    LTEXT           "Username:password:",IDC_STATIC,4,22,67,8
+    EDITTEXT        IDC_EDIT2,74,20,112,12,ES_AUTOHSCROLL
+    LTEXT           "(blank for none)",IDC_STATIC,190,22,50,8
+    LTEXT           "Default interface:",IDC_STATIC,4,42,55,8
+    COMBOBOX        IDC_COMBO1,60,40,126,120,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    PUSHBUTTON      "User pages...",IDC_BUTTON1,60,54,60,14
+    PUSHBUTTON      "Built-in pages...",IDC_BUTTON2,125,54,60,14
+    CONTROL         "Use rc.reaper.fm",IDC_CHECK2,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,4,100,68,10
+    LTEXT           "ID:",IDC_STATIC,86,101,10,8
+    EDITTEXT        IDC_EDIT3,101,99,84,12,ES_AUTOHSCROLL
+    LTEXT           "Access URL:",IDC_STATIC,4,119,43,8
+    EDITTEXT        IDC_EDIT6,50,116,161,13,ES_AUTOHSCROLL | ES_READONLY
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_SURFACEEDIT_MCU, DIALOG
+    BEGIN
+        LEFTMARGIN, 4
+        RIGHTMARGIN, 264
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 73
+    END
+
+    IDD_SURFACEEDIT_MCU1, DIALOG
+    BEGIN
+        LEFTMARGIN, 4
+        RIGHTMARGIN, 264
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 99
+    END
+
+    IDD_SURFACEEDIT_OSC, DIALOG
+    BEGIN
+        LEFTMARGIN, 4
+        RIGHTMARGIN, 264
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 129
+    END
+
+    IDD_OSC_LISTEN, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 211
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 93
+    END
+
+    IDD_SURFACEEDIT_HUI, DIALOG
+    BEGIN
+        LEFTMARGIN, 4
+        RIGHTMARGIN, 264
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 73
+    END
+
+    IDD_SURFACEEDIT_WWW, DIALOG
+    BEGIN
+        LEFTMARGIN, 4
+        RIGHTMARGIN, 261
+        TOPMARGIN, 3
+        BOTTOMMARGIN, 129
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

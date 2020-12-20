@@ -1,0 +1,122 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\mpglib">
+      <UniqueIdentifier>{15736837-1CEC-49CA-ADDA-2D3EFC4B5D17}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\WDL">
+      <UniqueIdentifier>{54352A51-4CD6-40EB-ABE3-BF592D10B8DB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\mpglib">
+      <UniqueIdentifier>{2E02C728-4CD4-497D-96B4-83174435F20A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\WDL">
+      <UniqueIdentifier>{3FF9DADF-74A4-40F5-842F-FD0701BB6196}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include=".\mpglib\common.cpp">
+      <Filter>Source Files\mpglib</Filter>
+    </ClCompile>
+    <ClCompile Include=".\mpglib\dct64_i386.cpp">
+      <Filter>Source Files\mpglib</Filter>
+    </ClCompile>
+    <ClCompile Include=".\mpglib\decode_i386.cpp">
+      <Filter>Source Files\mpglib</Filter>
+    </ClCompile>
+    <ClCompile Include=".\mpglib\interface.cpp">
+      <Filter>Source Files\mpglib</Filter>
+    </ClCompile>
+    <ClCompile Include=".\mpglib\layer2.cpp">
+      <Filter>Source Files\mpglib</Filter>
+    </ClCompile>
+    <ClCompile Include=".\mpglib\layer3.cpp">
+      <Filter>Source Files\mpglib</Filter>
+    </ClCompile>
+    <ClCompile Include=".\mpglib\StdAfx.cpp">
+      <Filter>Source Files\mpglib</Filter>
+    </ClCompile>
+    <ClCompile Include=".\mpglib\tabinit.cpp">
+      <Filter>Source Files\mpglib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\WDL\lameencdec.cpp">
+      <Filter>Source Files\WDL</Filter>
+    </ClCompile>
+    <ClCompile Include=".\mp3_index.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include=".\mp3dec.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include=".\pcmsink_mp3lame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include=".\pcmsrc_mp3dec.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include=".\mpglib\common.h">
+      <Filter>Header Files\mpglib</Filter>
+    </ClInclude>
+    <ClInclude Include=".\mpglib\dct64_i386.h">
+      <Filter>Header Files\mpglib</Filter>
+    </ClInclude>
+    <ClInclude Include=".\mpglib\decode_i386.h">
+      <Filter>Header Files\mpglib</Filter>
+    </ClInclude>
+    <ClInclude Include=".\mpglib\huffman.h">
+      <Filter>Header Files\mpglib</Filter>
+    </ClInclude>
+    <ClInclude Include=".\mpglib\l2tables.h">
+      <Filter>Header Files\mpglib</Filter>
+    </ClInclude>
+    <ClInclude Include=".\mpglib\layer2.h">
+      <Filter>Header Files\mpglib</Filter>
+    </ClInclude>
+    <ClInclude Include=".\mpglib\layer3.h">
+      <Filter>Header Files\mpglib</Filter>
+    </ClInclude>
+    <ClInclude Include=".\mpglib\mpglib.h">
+      <Filter>Header Files\mpglib</Filter>
+    </ClInclude>
+    <ClInclude Include=".\mpglib\tabinit.h">
+      <Filter>Header Files\mpglib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\WDL\lameencdec.h">
+      <Filter>Header Files\WDL</Filter>
+    </ClInclude>
+    <ClInclude Include=".\main.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include=".\mp3_index.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include=".\mp3dec.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\reaper_plugin.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include=".\resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include=".\res.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>
