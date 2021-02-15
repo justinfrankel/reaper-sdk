@@ -370,7 +370,7 @@ int POOLED_PCMSOURCE_CLASSNAME::PoolExtended(int call, void* parm1, void* parm2,
     {
       const char *evts=m_filepool->extraInfo->m_metadata.Get("ID3:ETCO");
       if (evts && !evts[0]) evts=NULL;
-      const char *chap=m_filepool->extraInfo->m_metadata.Get("ID3:CHAP1");
+      const char *chap=m_filepool->extraInfo->m_metadata.Get("ID3:CHAP001");
       if (chap && !chap[0]) chap=NULL;
       if (!evts && !chap) return 0;
 
@@ -417,7 +417,7 @@ int POOLED_PCMSOURCE_CLASSNAME::PoolExtended(int call, void* parm1, void* parm2,
           }
         }
         char buf[128];
-        snprintf(buf, sizeof(buf), "ID3:CHAP%d", ++i);
+        snprintf(buf, sizeof(buf), "ID3:CHAP%03d", ++i);
         chap=m_filepool->extraInfo->m_metadata.Get(buf);
         if (chap && !chap[0]) chap=NULL;
       }

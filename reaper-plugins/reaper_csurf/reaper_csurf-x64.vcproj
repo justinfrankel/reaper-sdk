@@ -18,9 +18,9 @@
 	</ToolFiles>
 	<Configurations>
 		<Configuration
-			Name="Debug64|Win32"
-			OutputDirectory=".\Debug64"
-			IntermediateDirectory=".\Debug64"
+			Name="Debug|Win32"
+			OutputDirectory=".\Debug32"
+			IntermediateDirectory=".\Debug32"
 			ConfigurationType="2"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
@@ -45,7 +45,7 @@
 				MkTypLibCompatible="true"
 				SuppressStartupBanner="true"
 				TargetEnvironment="1"
-				TypeLibraryName=".\Debug64/reaper_csurf-x64.tlb"
+				TypeLibraryName=".\Debug32/reaper_csurf.tlb"
 				HeaderFileName=""
 			/>
 			<Tool
@@ -56,12 +56,13 @@
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				PrecompiledHeaderFile=".\Debug64/reaper_csurf-x64.pch"
-				AssemblerListingLocation=".\Debug64/"
-				ObjectFile=".\Debug64/"
-				ProgramDataBaseFileName=".\Debug64/"
+				PrecompiledHeaderFile=".\Debug32/reaper_csurf.pch"
+				AssemblerListingLocation=".\Debug32/"
+				ObjectFile=".\Debug32/"
+				ProgramDataBaseFileName=".\Debug32/"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="4"
+				DisableSpecificWarnings="4312;4311"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -77,12 +78,12 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="odbc32.lib odbccp32.lib winmm.lib"
-				OutputFile="../Debug64/Plugins/reaper_csurf.dll"
+				OutputFile="../Debug32/Plugins/reaper_csurf.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile=".\Debug64/reaper_csurf.pdb"
-				ImportLibrary=".\Debug64/reaper_csurf.lib"
+				ProgramDatabaseFile=".\Debug32/reaper_csurf.pdb"
+				ImportLibrary=".\Debug32/reaper_csurf.lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -97,7 +98,7 @@
 			<Tool
 				Name="VCBscMakeTool"
 				SuppressStartupBanner="true"
-				OutputFile=".\Debug64/reaper_csurf-x64.bsc"
+				OutputFile=".\Debug32/reaper_csurf.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -113,7 +114,7 @@
 			/>
 		</Configuration>
 		<Configuration
-			Name="Debug64|x64"
+			Name="Debug|x64"
 			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="2"
@@ -156,7 +157,7 @@
 				ObjectFile=".\Debug64/"
 				ProgramDataBaseFileName=".\Debug64/"
 				SuppressStartupBanner="true"
-				Detect64BitPortabilityProblems="true"
+				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -209,9 +210,9 @@
 			/>
 		</Configuration>
 		<Configuration
-			Name="Release64|Win32"
-			OutputDirectory=".\Release64"
-			IntermediateDirectory=".\Release64"
+			Name="Release|Win32"
+			OutputDirectory=".\Release32"
+			IntermediateDirectory=".\Release32"
 			ConfigurationType="2"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
@@ -236,7 +237,7 @@
 				MkTypLibCompatible="true"
 				SuppressStartupBanner="true"
 				TargetEnvironment="1"
-				TypeLibraryName=".\Release64/reaper_csurf-x64.tlb"
+				TypeLibraryName=".\Release32/reaper_csurf.tlb"
 				HeaderFileName=""
 			/>
 			<Tool
@@ -246,13 +247,15 @@
 				InlineFunctionExpansion="1"
 				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;NDEBUG;_WINDOWS;_USRDLL;REAPER_CSURF_EXPORTS;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE"
 				StringPooling="true"
-				RuntimeLibrary="2"
+				RuntimeLibrary="0"
+				BufferSecurityCheck="false"
 				EnableFunctionLevelLinking="true"
-				PrecompiledHeaderFile=".\Release64/reaper_csurf-x64.pch"
-				AssemblerListingLocation=".\Release64/"
-				ObjectFile=".\Release64/"
-				ProgramDataBaseFileName=".\Release64/"
+				PrecompiledHeaderFile=".\Release32/reaper_csurf.pch"
+				AssemblerListingLocation=".\Release32/"
+				ObjectFile=".\Release32/"
+				ProgramDataBaseFileName=".\Release32/"
 				SuppressStartupBanner="true"
+				DisableSpecificWarnings="4312;4311"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -268,12 +271,12 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="odbc32.lib odbccp32.lib winmm.lib"
-				OutputFile="../Release64/Plugins/reaper_csurf.dll"
+				OutputFile="../Release32/Plugins/reaper_csurf.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				ProgramDatabaseFile=".\Release64/reaper_csurf.pdb"
+				ProgramDatabaseFile=".\Release32/reaper_csurf.pdb"
 				OptimizeForWindows98="1"
-				ImportLibrary=".\Release64/reaper_csurf.lib"
+				ImportLibrary=".\Release32/reaper_csurf.lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -288,7 +291,7 @@
 			<Tool
 				Name="VCBscMakeTool"
 				SuppressStartupBanner="true"
-				OutputFile=".\Release64/reaper_csurf-x64.bsc"
+				OutputFile=".\Release32/reaper_csurf.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -304,7 +307,7 @@
 			/>
 		</Configuration>
 		<Configuration
-			Name="Release64|x64"
+			Name="Release|x64"
 			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="2"
@@ -419,7 +422,7 @@
 				RelativePath="csurf_main.cpp"
 				>
 				<FileConfiguration
-					Name="Debug64|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -427,7 +430,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug64|x64"
+					Name="Debug|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -435,7 +438,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release64|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -443,7 +446,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release64|x64"
+					Name="Release|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -467,7 +470,7 @@
 				RelativePath="res.rc"
 				>
 				<FileConfiguration
-					Name="Debug64|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCResourceCompilerTool"
@@ -475,7 +478,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug64|x64"
+					Name="Debug|x64"
 					>
 					<Tool
 						Name="VCResourceCompilerTool"
@@ -483,7 +486,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release64|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCResourceCompilerTool"
@@ -491,7 +494,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release64|x64"
+					Name="Release|x64"
 					>
 					<Tool
 						Name="VCResourceCompilerTool"
@@ -506,7 +509,7 @@
 					RelativePath="csurf_01X.cpp"
 					>
 					<FileConfiguration
-						Name="Debug64|Win32"
+						Name="Debug|Win32"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -514,7 +517,7 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug64|x64"
+						Name="Debug|x64"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -522,7 +525,7 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release64|Win32"
+						Name="Release|Win32"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -530,7 +533,7 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release64|x64"
+						Name="Release|x64"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -542,7 +545,7 @@
 					RelativePath="csurf_alphatrack.cpp"
 					>
 					<FileConfiguration
-						Name="Debug64|Win32"
+						Name="Debug|Win32"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -550,7 +553,7 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug64|x64"
+						Name="Debug|x64"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -558,7 +561,7 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release64|Win32"
+						Name="Release|Win32"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -566,7 +569,7 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release64|x64"
+						Name="Release|x64"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -578,7 +581,7 @@
 					RelativePath="csurf_babyhui.cpp"
 					>
 					<FileConfiguration
-						Name="Debug64|Win32"
+						Name="Debug|Win32"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -586,7 +589,7 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug64|x64"
+						Name="Debug|x64"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -594,7 +597,7 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release64|Win32"
+						Name="Release|Win32"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -602,7 +605,7 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release64|x64"
+						Name="Release|x64"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -614,7 +617,7 @@
 					RelativePath="csurf_bcf2000.cpp"
 					>
 					<FileConfiguration
-						Name="Debug64|Win32"
+						Name="Debug|Win32"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -622,7 +625,7 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug64|x64"
+						Name="Debug|x64"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -630,7 +633,7 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release64|Win32"
+						Name="Release|Win32"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -638,7 +641,7 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release64|x64"
+						Name="Release|x64"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -650,7 +653,7 @@
 					RelativePath="csurf_faderport.cpp"
 					>
 					<FileConfiguration
-						Name="Debug64|Win32"
+						Name="Debug|Win32"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -658,7 +661,7 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug64|x64"
+						Name="Debug|x64"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -666,7 +669,7 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release64|Win32"
+						Name="Release|Win32"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -674,7 +677,7 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release64|x64"
+						Name="Release|x64"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -686,7 +689,7 @@
 					RelativePath="csurf_mcu.cpp"
 					>
 					<FileConfiguration
-						Name="Debug64|Win32"
+						Name="Debug|Win32"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -694,7 +697,7 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug64|x64"
+						Name="Debug|x64"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -702,7 +705,7 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release64|Win32"
+						Name="Release|Win32"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -710,7 +713,7 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release64|x64"
+						Name="Release|x64"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -726,7 +729,7 @@
 					RelativePath="csurf_tranzport.cpp"
 					>
 					<FileConfiguration
-						Name="Debug64|Win32"
+						Name="Debug|Win32"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -734,7 +737,7 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug64|x64"
+						Name="Debug|x64"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -742,7 +745,7 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release64|Win32"
+						Name="Release|Win32"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -750,7 +753,7 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release64|x64"
+						Name="Release|x64"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
