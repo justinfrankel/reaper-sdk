@@ -11,19 +11,20 @@
 #define LV2_EMBED_UI__EmbedUI     LV2_EMBED_UI_PREFIX "EmbedUI"   ///< https://cockos.com/lv2/embed_ui#EmbedUI
 
 
-typedef struct _LV2_EMBED_UI_MouseState {
+typedef struct _LV2_EMBED_UI_State {
   uint32_t width, height;
+  float dpi_scaling;
+
   uint32_t mouse_x, mouse_y;
-  uint32_t mouse_button_state;
-} LV2_EMBED_UI_MouseState;
+  uint8_t mouse_button_status;
+  uint8_t key_modifier_status; // to define
+} LV2_EMBED_UI_State;
 
 typedef struct _LV2_EMBED_UI_DrawState {
-  LV2_EMBED_UI_MouseState state;
+  LV2_EMBED_UI_State state;
 
-  unsigned int *framebuffer; // state.width x state.height, but framebuffer_span bytes per row
+  unsigned int *framebuffer; // state.width x state.height of 0x00RRGGBB, framebuffer_span bytes per row
   uint32_t framebuffer_span;
-
-  float dpi_scaling;
   bool update_optional;
 } LV2_EMBED_UI_DrawState;
 
@@ -31,7 +32,7 @@ typedef struct _LV2_EMBED_UI_SizeHints {
   uint32_t preferred_aspect; // 16.16 fixed point (65536 = 1:1, 32768 = 1:2, etc)
   uint32_t minimum_aspect;   // 16.16 fixed point
 
-  uint32_t min_width, min_height;
+  uint32_t min_width, min_height; // dpi-independent units
   uint32_t max_width, max_height;
 } LV2_EMBED_UI_SizeHints;
 
@@ -39,12 +40,12 @@ typedef enum {
   LV2_EMBED_UI_atom=0,       //passed LV2_Atom
   LV2_EMBED_UI_getSizeHints, //passed LV2_EMBED_UI_SizeHints
   LV2_EMBED_UI_draw,         //passed LV2_EMBED_UI_DrawState
-  LV2_EMBED_UI_setCursor,    //passed LV2_EMBED_UI_MouseState
-  LV2_EMBED_UI_mouseMove,    //passed LV2_EMBED_UI_MouseState
-  LV2_EMBED_UI_mouseDown,    //passed LV2_EMBED_UI_MouseState
-  LV2_EMBED_UI_mouseUp,      //passed LV2_EMBED_UI_MouseState
-  LV2_EMBED_UI_mouse2Down,   //passed LV2_EMBED_UI_MouseState
-  LV2_EMBED_UI_mouse2Up,     //passed LV2_EMBED_UI_MouseState
+  LV2_EMBED_UI_setCursor,    //passed LV2_EMBED_UI_State
+  LV2_EMBED_UI_mouseMove,    //passed LV2_EMBED_UI_State
+  LV2_EMBED_UI_mouseDown,    //passed LV2_EMBED_UI_State
+  LV2_EMBED_UI_mouseUp,      //passed LV2_EMBED_UI_State
+  LV2_EMBED_UI_mouse2Down,   //passed LV2_EMBED_UI_State
+  LV2_EMBED_UI_mouse2Up,     //passed LV2_EMBED_UI_State
 } LV2_EMBED_UI_Message;
 
 // returned as a LV2UI_Widget
