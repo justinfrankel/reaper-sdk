@@ -133,18 +133,111 @@ typedef struct reaper_plugin_info_t
 
   HWND hwnd_main;
 
-  // this is the API that plug-ins register most things, be it keyboard shortcuts, project importers, etc.
-  // typically you register things on load of the DLL, for example:
+  /*
+  Register() is the API that plug-ins register most things, be it keyboard shortcuts, project importers, etc.
+  Register() is also available by using GetFunc("plugin_register")
 
-  // static pcmsink_register_t myreg={ ... };
-  // rec->Register("pcmsink",&myreg);
- 
-  // then on plug-in unload (or if you wish to remove it for some reason), you should do:
-  // rec->Register("-pcmsink",&myreg);
-  // the "-" prefix is supported for most registration types.
+  extensions typically register things on load of the DLL, for example:
+
+     static pcmsink_register_t myreg={ ... };
+     rec->Register("pcmsink",&myreg);
+
+  on plug-in unload (or if the extension wishes to remove it for some reason):
+     rec->Register("-pcmsink",&myreg);
+
+  the "-" prefix is supported for most registration types.
+  some types support the < prefix to register at the start of the list
+
+  Registration types:
+
+  API_*:
+    if you have a function called myfunction(..) that you want to expose to other extensions, use:
+      rec->Register("API_myfunction",funcaddress);
+    other extensions then use GetFunc("myfunction") to get the function pointer.
+
+  APIdef_*:
+    To make a function registered with API_* available via ReaScript, follow the API_ registration with:
+      double myfunction(char* str, int flag);
+      const char *defstring = "double\0char*,int\0str,flag\0help text for myfunction"
+      rec->Register("APIdef_myfunction",(void*)defstring);
+    defstring is four null-separated fields: return type, argument types, argument names, and help.
+
+  APIvararg_*:
+    Used to set the reascript vararg function pointer for an API_. todo document
+
+  hookcommand:
+    Registers a hook which runs prior to every action in the main section:
+      bool runCommand(int command, int flag);
+      rec->Register("hookcommand",runCommand);
+    runCommand() should return true if it processed the command (prevent further hooks or the action from running)
+    It is OK to call Main_OnCommand() from runCommand(), but it must check for and handle any recursion.
+
+  hookpostcommand:
+    Registers a hook which runs after each action in the main section:
+      void postCommand(int command, int flag);
+      rec->Register("hookpostcommand",postCommand);
+
+  hookcommand2:
+    Registers a hook which runs prior to every action triggered by a key/MIDI event:
+      bool onAction(KbdSectionInfo *sec, int command, int val, int val2, int relmode, HWND hwnd);
+      rec->Register("hookcommand2",hook); \
+    onAction returns true if it processed the command (preventing further hooks or actions from running)
+      val/val2 are used for actions triggered by MIDI/OSC/mousewheel
+        - val = [0..127] and val2 = -1 for MIDI CC,
+        - val2 >=0 for MIDI pitch or OSC with value = (val2|(val<<7))/16383.0
+        - relmode absolute(0) or 1/2/3 for relative adjust modes
+
+  hookpostcommand2:
+     void (*hook)(KbdSectionInfo *section, int actionCommandID, int val, int valhw, int relmode, HWND hwnd, ReaProject *proj);
+     rec->Register("hookpostcommand2",hook);
+
+  command_id:
+    Registers/looks up a command ID for an action. Parameter is a unique string with only A-Z, a-z, 0-9.
+      int command = Register("command_id","MyCommandName");
+    returns 0 if unsupported/out of actions
+
+  command_id_lookup:
+    Like command_id but only looks up, does not create a new command ID.
+
+  pcmsink_ext:
+    Registers an extended audio sink type:
+      (pcmsink_register_ext_t *)
+
+  pcmsink:
+    Registers an audio sink type:
+      (pcmsink_register_t *)
+
+  pcmsrc:
+    Registers an audio source:
+    (pcmsrc_register_t *)
+
+  timer:
+    Runs a timer periodically:
+      void (*timer_function)();
+
+  file_in_project_ex:
+  accel_section:
+  action_help:
+  custom_action:
+  gaccel:
+  hookcustommenu:
+  prefpage:
+  projectimport:
+  projectconfig:
+  editor:
+  accelerator:
+  csurf:
+  csurf_inst:
+  toggleaction:
+  on_update_hooks:
+  toolbar_icon_map:
+  open_file_reduce:
+
+  */
+
   int (*Register)(const char *name, void *infostruct); // returns 1 if registered successfully
 
-  // get a generic API function, there many of these defined.
+  // get a generic API function, there many of these defined. see reaper_plugin_functions.h
   void * (*GetFunc)(const char *name); // returns 0 if function not found
 
 } reaper_plugin_info_t;
@@ -402,7 +495,8 @@ typedef struct
 {
   PCM_source* m_sliceSrc;
   double m_beatSnapOffset;
-  char resvd[128];  // future expansion -- should be 0
+  int flag; // &1=only return beatsnapoffset, not slicesrc
+  char resvd[124];  // future expansion -- should be 0
 } REAPER_slice;
 
 typedef struct
@@ -1253,5 +1347,7 @@ typedef struct
 
 
 #define WDL_FILEWRITE_ON_ERROR(is_full) update_disk_counters(0,-101010110 - ((is_full) ? 1 : 0));
+
+#define REAPER_MAX_CHANNELS 64
 
 #endif//_REAPER_PLUGIN_H_
