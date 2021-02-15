@@ -407,25 +407,25 @@ typedef struct
 
 typedef struct
 {
-  double draw_start_time; // pcm-source-inline only: project time at pixel start of draw
-  int draw_start_y;       // pcm-source-inline only: if y-scroll is partway into the item, positive pixel value
-  double pixels_per_second; // pcm-source-inline only
+  double draw_start_time; // project time at pixel start of draw
+  int draw_start_y;       // if y-scroll is partway into the item, positive pixel value
+  double pixels_per_second;
 
   int width, height; // width and height of view of the item. if doing a partial update this may be larger than the bitmap passed in
-  int mouse_x, mouse_y; // pcm-source-inline: valid only on mouse/key/setcursor/etc messages
+  int mouse_x, mouse_y; // valid only on mouse/key/setcursor/etc messages
 
   void *extraParms[8];
   // WM_KEYDOWN handlers can use MSG *msg = (MSG *)extraParms[0]
-  // WM_SETCURSOR, if pcm-source-inline: handlers should set *extraParms[0] = hcursor
-  // WM_PAINT, if fx-embed: extra_flag = (int)(INT_PTR)extraParms[0]
+  // WM_SETCURSOR handlers should set *extraParms[0] = hcursor
 } REAPER_inline_positioninfo;
 
 #define PCM_SOURCE_EXT_INLINEEDITOR 0x100  /* parm1 = (void *)(INT_PTR)message, parm2/parm3 = parms
 
                              note: for the WM_* constants, you can use windows.h if on Windows, and SWELL's definitions if on other platforms
                              note: for LICE_IBitmap interface, you can use LICE's definition
-                             for SWELL and LICE, see Cockos WDL --ttps://www.cockos.com/wdl
+                             for SWELL and LICE, see Cockos WDL -- https://www.cockos.com/wdl
 
+                             NOTE: fx-embed documentation is now in reaper_plugin_fx_embed.h
 
                                               messages:
                                                 0 = query if editor is available/supported. returns <0 if supported but unavailable, >0 if available, 0=if not supported
@@ -433,49 +433,26 @@ typedef struct
                                                 WM_DESTROY to destroy the editor instance (nonzero if success)
 
                                                 WM_LBUTTON*, WM_RBUTTON*, WM_MOUSEMOVE, WM_MOUSEWHEEL -- parm2=rsvd, parm3= REAPER_inline_positioninfo)
-                                                  pcm-source-inline --- these can return any combination of:
+                                                  these can return any combination of:
                                                     REAPER_INLINE_RETNOTIFY_INVALIDATE
                                                     REAPER_INLINE_RETNOTIFY_SETCAPTURE
                                                     REAPER_INLINE_RETNOTIFY_SETFOCUS
-                                                  fx-embed: return value should be 0. capture is always set while mouse is down, release on release
 
                                                WM_KEYDOWN -- parm3=REAPER_inline_positioninfo*, MSG *kbmsg = (MSG *)rec->extraParms[0]
-                                                  pcm-source-inline: return nonzero to eat the key. can return REAPER_INLINE_RETNOTIFY_INVALIDATE.
-                                                  fx-embed: not yet supported, but probably will be
+                                                  return nonzero to eat the key. can return REAPER_INLINE_RETNOTIFY_INVALIDATE.
 
                                                WM_SETCURSOR -- parm3=REAPER_inline_positioninfo*
-                                                 -- pcm-source-inline: *rec->extraParms[0] = hcursor
-                                                 -- fx-embed: return hcursor directly as (INT_PTR)
-
-                                               WM_GETMINMAXINFO -- fx-embed -- parm2=reserved (NULL), parm3= MINMAXINFO *.
-                                                   ptMinTrackSize/ptMaxTrackSize should be set to the min/max desired size, in DPI-independent units
-                                                   ptReserved.x is the 16.16 fixed point preserved aspect ratio
-                                                   ptReserved.y is the 16.16 fixed point minimum aspect ratio
+                                                 --  *rec->extraParms[0] = hcursor
 
                                               paint messages: parm2 = LICE_IBitmap *, parm3 = (REAPER_inline_positioninfo*).
-                                                pcm-source-inline:
                                                   WM_ERASEBKGND -- draw first pass -- should return 1 if supported
                                                   WM_PAINT -- draw second pass     -- should return 1 if paint supported
                                                   WM_NCPAINT -- draw third pass
 
-                                                fx-embed:
-                                                  WM_PAINT -- should normally draw and return 1.
-                                                           -- if extra_flags (see extraParms above) has set:
-                                                              1 = update is optional (this is called often!). If no change detected since last draw, do no drawing and return 0.
-                                                              0x10000 = left button down (and captured)
-                                                              0x20000 = right button down (and captured)
-
-                                               Notes on fx-embed VST implementation:
-                                                 canDo("hasCockosEmbeddedUI") should return 0xbeef0000
-                                                 calls translate to: dispatcher(effect, effVendorSpecific, effEditDraw, parm2, (void *)parm3, (float)message)
-
                                                Notes on Retina/HiDPI:
-                                                 - pcm-source-inline:
                                                      on macOS retina, (int)LICE_IBitmap::Extended(LICE_EXT_GET_SCALING,NULL) may return 512. in this case LICE will internally render things double-sized
                                                      on other platforms HiDPI, if (int)LICE_IBitmap::Extended(LICE_EXT_GET_ADVISORY_SCALING,NULL) returns nonzero, then it is a 24.8 scale factor which things
                                                      should be scaled by.
-                                                 - fx-embed:
-                                                     if (int)LICE_IBitmap::Extended(LICE_EXT_GET_ADVISORY_SCALING,NULL) returns nonzero, then it is a 24.8 scalefactor which things should be scaled by.
 
                                                */
 

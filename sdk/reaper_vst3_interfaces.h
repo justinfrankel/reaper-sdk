@@ -21,7 +21,7 @@ class IReaperUIEmbedInterface : public FUnknown // supported by REAPER v6.24+, q
 {
   public:
     // note: VST2 uses CanDo "hasCockosEmbeddedUI"==0xbeef0000, then opcode=effVendorSpecific, index=effEditDraw, opt=(float)msg, value=parm2, ptr=parm3
-    // see PCM_SOURCE_EXT_INLINEEDITOR in reaper_plugin.h for the meaning of this
+    // see reaper_plugin_fx_embed.h
   virtual Steinberg::TPtrInt embed_message(int msg, Steinberg::TPtrInt parm2, Steinberg::TPtrInt parm3) = 0;
 
   static const FUID iid;
