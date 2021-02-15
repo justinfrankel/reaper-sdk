@@ -111,6 +111,7 @@ typedef struct REAPER_FXEMBED_SizeHints { // alias to MINMAXINFO
 #define REAPER_FXEMBED_PIXEL_A 3
 #endif
 
+#ifdef __cplusplus
 class REAPER_FXEMBED_IBitmap // alias of LICE_IBitmap
 {
 public:
@@ -123,11 +124,49 @@ public:
   virtual bool isFlipped() { return false;  }
   virtual bool resize(int w, int h)=0;
 
-  virtual struct __HDC *getDC() { return 0; } // do not use
+  virtual void *getDC() { return 0; } // do not use
 
   virtual INT_PTR Extended(int id, void* data) { return 0; }
 };
+#endif
 
 #define REAPER_FXEMBED_EXT_GET_ADVISORY_SCALING 0x2003 // data ignored, returns .8 fixed point. returns 0 if unscaled
+
+#ifdef LV2_H_INCLUDED
+/*
+ * LV2 API
+ */
+
+typedef void *LV2_FXEMBED_Controller;
+typedef struct _LV2_FXEMBED_HostNotifications {
+  LV2_FXEMBED_Controller controller;
+
+  // mirror of LV2UI_Touch
+  void (*touch)(LV2_FXEMBED_Controller, uint32_t port_index, bool grabbed);
+
+  // mirror of LV2UI_Write_Function. host may (but is not required to) implement types other than port_protocol=0 (float value)
+  void (*write_func)(LV2_FXEMBED_Controller controller,
+                     uint32_t         port_index,
+                     uint32_t         buffer_size,
+                     uint32_t         port_protocol,
+                     const void*      buffer);
+
+  // for non-C++ users
+  // scaling will be set to 0 for 100%, otherwise 24.8 fixed point (512=200%/retina)
+  unsigned int *(*get_bitmap_info)(intptr_t ibitmap_ptr, uint32_t *width, uint32_t *height, uint32_t *rowspan_integers, uint32_t *scaling);
+
+  // future expansion
+  intptr_t (*extended)(LV2_FXEMBED_Controller controller, const char *uri, void *data);
+
+} LV2_FXEMBED_HostNotifications;
+
+#define LV2_FXEMBED__interface "https://cockos.com/lv2/fxembed#interface"
+typedef struct _LV2_FXEMBED_Interface {
+
+  // called from non-realtime context with REAPER_FXEMBED_WM_*
+  intptr_t (*embed_message)(LV2_Handle lv2, LV2_FXEMBED_HostNotifications *callbacks, int msg, intptr_t parm2, intptr_t parm3);
+} LV2_FXEMBED_Interface;
+
+#endif // LV2_H_INCLUDED
 
 #endif
