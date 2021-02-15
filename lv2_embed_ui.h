@@ -39,7 +39,7 @@ typedef struct _LV2_EMBED_UI_SizeHints {
 typedef enum {
   LV2_EMBED_UI_atom=0,       //passed LV2_Atom
   LV2_EMBED_UI_getSizeHints, //passed LV2_EMBED_UI_SizeHints
-  LV2_EMBED_UI_draw,         //passed LV2_EMBED_UI_DrawState
+  LV2_EMBED_UI_draw,         //passed LV2_EMBED_UI_DrawState (return 1 if drawing occurred, return 0 if update_optional and no update took place)
   LV2_EMBED_UI_setCursor,    //passed LV2_EMBED_UI_State
   LV2_EMBED_UI_mouseMove,    //passed LV2_EMBED_UI_State
   LV2_EMBED_UI_mouseDown,    //passed LV2_EMBED_UI_State
