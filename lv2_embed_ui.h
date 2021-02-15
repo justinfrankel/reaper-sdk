@@ -20,8 +20,9 @@ typedef struct _LV2_EMBED_UI_MouseState {
 typedef struct _LV2_EMBED_UI_DrawState {
   LV2_EMBED_UI_MouseState state;
 
-  unsigned int *framebuffer;
-  uint32_t framebuffer_w, framebuffer_h, framebuffer_span;
+  unsigned int *framebuffer; // state.width x state.height, but framebuffer_span bytes per row
+  uint32_t framebuffer_span;
+
   float dpi_scaling;
   bool update_optional;
 } LV2_EMBED_UI_DrawState;
