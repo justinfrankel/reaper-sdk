@@ -75,6 +75,7 @@ typedef struct REAPER_FXEMBED_SizeHints { // alias to MINMAXINFO
  * mouse messages
  * parm3 = (REAPER_FXEMBED_DrawInfo*)
  * capture is automatically set on mouse down, released on mouse up
+ * when not captured, will always receive a mousemove when exiting the window
  */
 
 #define REAPER_FXEMBED_WM_MOUSEMOVE                    0x0200
@@ -84,7 +85,6 @@ typedef struct REAPER_FXEMBED_SizeHints { // alias to MINMAXINFO
 #define REAPER_FXEMBED_WM_RBUTTONDOWN                  0x0204
 #define REAPER_FXEMBED_WM_RBUTTONUP                    0x0205
 #define REAPER_FXEMBED_WM_RBUTTONDBLCLK                0x0206
-#define REAPER_FXEMBED_WM_MOUSEWHEEL                   0x020A
 
 
 
