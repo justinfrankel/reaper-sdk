@@ -470,7 +470,7 @@ bool ParseID3v2(char *buf, int tag_size, WDL_StringKeyedArray<char*> *metadata, 
     }
     else if (!fast && buf[3] != 2 && !strcmp(frameid.Get(), "CHAP"))
     {
-      frameid.AppendFormatted(512, "%d", ++chapcnt);
+      frameid.AppendFormatted(512, "%03d", ++chapcnt);
 
       int pos=0;
       while (pos < frame_sz && p[pos]) ++pos; // advance through CTOC child element

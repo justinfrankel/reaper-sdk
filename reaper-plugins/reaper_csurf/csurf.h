@@ -287,7 +287,6 @@ extern int __g_projectconfig_timemode2;
 extern int __g_projectconfig_timemode;
 extern int __g_projectconfig_timeoffs;
 extern int __g_projectconfig_measoffs;
-extern int __g_projectconfig_showgrid;
 extern int __g_projectconfig_autoxfade;
 extern int __g_projectconfig_metronome_en;
 
