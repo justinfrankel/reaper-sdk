@@ -27,15 +27,23 @@
 
 typedef struct REAPER_FXEMBED_DrawInfo // alias of REAPER_inline_positioninfo
 {
-  double _res1;
+  int context;        // 0=unknown (v6.23 and earlier), 1=TCP, 2=MCP
+  int dpi;            // 0=unknown (v6.23 and earlier), otherwise 24.8 fixed point (256=100%)
   int mousewheel_amt; // for REAPER_FXEMBED_WM_MOUSEWHEEL, 120 = step, typically
   double _res2;
 
   int width, height;
   int mouse_x, mouse_y;
 
-  INT_PTR extra_flags;
+  int flags; // REAPER_FXEMBED_DRAWINFO_FLAG_PAINT_OPTIONAL etc
+  int _res3;
+
+  void *spare[6];
 } REAPER_FXEMBED_DrawInfo;
+
+#define REAPER_FXEMBED_DRAWINFO_FLAG_PAINT_OPTIONAL 1
+#define REAPER_FXEMBED_DRAWINFO_FLAG_LBUTTON_CAPTURED 0x10000
+#define REAPER_FXEMBED_DRAWINFO_FLAG_RBUTTON_CAPTURED 0x20000
 
 #define REAPER_FXEMBED_WM_PAINT                        0x000F
 /*
@@ -43,9 +51,9 @@ typedef struct REAPER_FXEMBED_DrawInfo // alias of REAPER_inline_positioninfo
  * parm2: REAPER_FXEMBED_IBitmap * to draw into. note
  * parm3: REAPER_FXEMBED_DrawInfo *
  *
- * if extra_flags has 1 set, update is optional. if no change since last draw, return 0.
- * if extra_flags has 0x10000 set, left mouse button is down and captured
- * if extra_flags has 0x20000 set, right mouse button is down and captured
+ * if flags has REAPER_FXEMBED_DRAWINFO_FLAG_PAINT_OPTIONAL set, update is optional. if no change since last draw, return 0.
+ * if flags has REAPER_FXEMBED_DRAWINFO_FLAG_LBUTTON_CAPTURED set, left mouse button is down and captured
+ * if flags has REAPER_FXEMBED_DRAWINFO_FLAG_RBUTTON_CAPTURED set, right mouse button is down and captured
  *
  * HiDPI:
  * if REAPER_FXEMBED_IBitmap::Extended(REAPER_FXEMBED_EXT_GET_ADVISORY_SCALING,NULL) returns nonzero, then it is a 24.8 scalefactor for UI drawing
