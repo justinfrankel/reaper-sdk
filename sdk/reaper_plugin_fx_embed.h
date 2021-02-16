@@ -76,6 +76,8 @@ typedef struct REAPER_FXEMBED_SizeHints { // alias to MINMAXINFO
  * parm3 = (REAPER_FXEMBED_DrawInfo*)
  * capture is automatically set on mouse down, released on mouse up
  * when not captured, will always receive a mousemove when exiting the window
+ * if these return 1, a non-optional redraw is initiated (generally sooner than
+ * the next timer-based redraw)
  */
 
 #define REAPER_FXEMBED_WM_MOUSEMOVE                    0x0200
@@ -98,18 +100,6 @@ typedef struct REAPER_FXEMBED_SizeHints { // alias to MINMAXINFO
 #define REAPER_FXEMBED_GETG(v) (((v)>>8)&0xff)
 #define REAPER_FXEMBED_GETR(v) (((v)>>16)&0xff)
 #define REAPER_FXEMBED_GETA(v) (((v)>>24)&0xff)
-
-#if defined(__APPLE__) && defined(__ppc__)
-#define REAPER_FXEMBED_PIXEL_A 0
-#define REAPER_FXEMBED_PIXEL_R 1
-#define REAPER_FXEMBED_PIXEL_G 2
-#define REAPER_FXEMBED_PIXEL_B 3
-#else
-#define REAPER_FXEMBED_PIXEL_B 0
-#define REAPER_FXEMBED_PIXEL_G 1
-#define REAPER_FXEMBED_PIXEL_R 2
-#define REAPER_FXEMBED_PIXEL_A 3
-#endif
 
 #ifdef __cplusplus
 class REAPER_FXEMBED_IBitmap // alias of LICE_IBitmap
