@@ -28,8 +28,8 @@
 typedef struct REAPER_FXEMBED_DrawInfo // alias of REAPER_inline_positioninfo
 {
   double _res1;
-  int _res2;
-  double _res3;
+  int mousewheel_amt; // for REAPER_FXEMBED_WM_MOUSEWHEEL, 120 = step, typically
+  double _res2;
 
   int width, height;
   int mouse_x, mouse_y;
@@ -54,7 +54,7 @@ typedef struct REAPER_FXEMBED_DrawInfo // alias of REAPER_inline_positioninfo
  *
  */
 
-#define REAPER_FXEMBED_WM_SETCURSOR                    0x0020 // parm3: REAPER_FXEMBED_DrawInfo*. set mouse cursor and return 1, or return 0.
+#define REAPER_FXEMBED_WM_SETCURSOR                    0x0020 // parm3: REAPER_FXEMBED_DrawInfo*. set mouse cursor and return REAPER_FXEMBED_RETNOTIFY_HANDLED, or return 0.
 
 #define REAPER_FXEMBED_WM_GETMINMAXINFO                0x0024
 /*
@@ -76,8 +76,6 @@ typedef struct REAPER_FXEMBED_SizeHints { // alias to MINMAXINFO
  * parm3 = (REAPER_FXEMBED_DrawInfo*)
  * capture is automatically set on mouse down, released on mouse up
  * when not captured, will always receive a mousemove when exiting the window
- * if these return 1, a non-optional redraw is initiated (generally sooner than
- * the next timer-based redraw)
  */
 
 #define REAPER_FXEMBED_WM_MOUSEMOVE                    0x0200
@@ -87,8 +85,17 @@ typedef struct REAPER_FXEMBED_SizeHints { // alias to MINMAXINFO
 #define REAPER_FXEMBED_WM_RBUTTONDOWN                  0x0204
 #define REAPER_FXEMBED_WM_RBUTTONUP                    0x0205
 #define REAPER_FXEMBED_WM_RBUTTONDBLCLK                0x0206
+#define REAPER_FXEMBED_WM_MOUSEWHEEL                   0x020A
 
 
+/* REAPER_FXEMBED_WM_SETCURSOR should return REAPER_FXEMBED_RETNOTIFY_HANDLED if a cursor was set
+ */
+#define REAPER_FXEMBED_RETNOTIFY_HANDLED    0x0000001
+
+/* if the mouse messages return with REAPER_FXEMBED_RETNOTIFY_INVALIDATE set, a non-optional
+ * redraw is initiated (generally sooner than the next timer-based redraw)
+ */
+#define REAPER_FXEMBED_RETNOTIFY_INVALIDATE 0x1000000
 
 /*
  * bitmap interface
