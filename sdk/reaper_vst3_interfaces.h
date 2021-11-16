@@ -17,7 +17,7 @@ public:
 
 DECLARE_CLASS_IID (IReaperHostApplication, 0x79655E36, 0x77EE4267, 0xA573FEF7, 0x4912C27C)
 
-class IReaperUIEmbedInterface : public FUnknown // supported by REAPER v6.24+, queried from plug-in IController
+class IReaperUIEmbedInterface : public FUnknown // supported by REAPER v6.24+, queried from plug-in IEditController
 {
   public:
     // note: VST2 uses CanDo "hasCockosEmbeddedUI"==0xbeef0000, then opcode=effVendorSpecific, index=effEditDraw, opt=(float)msg, value=parm2, ptr=parm3

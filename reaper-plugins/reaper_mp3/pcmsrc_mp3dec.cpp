@@ -385,7 +385,7 @@ int POOLED_PCMSOURCE_CLASSNAME::PoolExtended(int call, void* parm1, void* parm2,
           while (*p && *p != ',') ++p;
           if (p <= sep || sep <= t) break; // ill formed
           unsigned int ms=atoi(t);
-          unsigned char type=GetETCOType(sep+1, p-sep);
+          int type=GetETCOType(sep+1, p-sep);
           if (type >= 0)
           {
             ID3Cue id3_cue={0};
@@ -792,9 +792,9 @@ void PCM_source_mp3::SaveState(ProjectStateContext *ctx)
   if (relative_fn)
   {
     relative_fn(GetFileName(),buf,sizeof(buf));
-    ctx->AddLine("FILE \"%s\" %d",buf,m_adjustLatency);
+    ctx->AddLine("FILE %p~ %d",buf,m_adjustLatency);
   }
-  else ctx->AddLine("FILE \"%s\" %d",GetFileName(),m_adjustLatency);
+  else ctx->AddLine("FILE %p~ %d",GetFileName(),m_adjustLatency);
 }
 
 int PCM_source_mp3::LoadState(const char *firstline, ProjectStateContext *ctx) // -1 on error

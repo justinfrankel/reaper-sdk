@@ -6,7 +6,7 @@
  * to support via VST2: canDo("hasCockosEmbeddedUI") should return 0xbeef0000
  * dispatcher will be called with opcode=effVendorSpecific, index=effEditDraw, value=parm2, ptr=(void*)(INT_PTR)parm3, opt=message (REAPER_FXEMBED_WM_*)
  *
- * to support via VST3: IController should support IReaperUIEmbedInterface, see reaper_vst3_interfaces.h
+ * to support via VST3: IEditController should support IReaperUIEmbedInterface, see reaper_vst3_interfaces.h
  *
  * to support via LV2: todo
  */

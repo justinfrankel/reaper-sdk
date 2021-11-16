@@ -301,18 +301,15 @@ bool ParseID3v2(char *buf, int tag_size, WDL_StringKeyedArray<char*> *metadata, 
   if (buf[5]&0x80) // unsynchronisation at tag level
   {
     unsigned char *p=(unsigned char *)buf+10;
-    int i=0, j=0, old_tag_size=tag_size;
-    while (i<old_tag_size)
+    int i=0, j=0;
+    while (i<tag_size)
     {
       p[j]=p[i];
-      if (p[i]==0xFF && p[i+1]==0x00)
-      {
-//        tag_size--;
-        i++;
-      }
+      if (i < tag_size-1 && p[i]==0xFF && p[i+1]==0x00) i++;
       i++;
       j++;
     }
+    tag_size=j;
   }
 
   int ext_hdr_sz = (buf[3]!=2 && (buf[5]&0x40)) ? SynchSafeBytesToInt(buf[3]==4, buf+10, 4) : 0;
@@ -322,7 +319,8 @@ bool ParseID3v2(char *buf, int tag_size, WDL_StringKeyedArray<char*> *metadata, 
   WDL_FastString frameid, frame_data, shortdesc, txt;
   int chapcnt=0;
   int id3_pos = 10+ext_hdr_sz;
-  while (id3_pos < 10+tag_size)
+  const int chunk_hdr_size = buf[3] == 2 ? 6 : 10;
+  while (WDL_NORMALLY(id3_pos > 0) && id3_pos + chunk_hdr_size <= 10+tag_size)
   {
     if (!memcmp(buf+id3_pos, "\0\0\0", 3)) break; // we are into padding
     
@@ -332,7 +330,7 @@ bool ParseID3v2(char *buf, int tag_size, WDL_StringKeyedArray<char*> *metadata, 
     int frame_sz = SynchSafeBytesToInt(buf[3]==4, buf+id3_pos, buf[3]==2 ? 3 : 4);
     if (frame_sz <= 0) break;
     id3_pos += (buf[3]==2 ? 3 : 4);
-    if (id3_pos+frame_sz > 10+tag_size) break;
+    if (id3_pos+frame_sz < 0 || id3_pos+frame_sz > 10+tag_size) break;
     
     if (frameid.GetLength() != (buf[3]==2 ? 3 : 4))
     {
@@ -341,7 +339,6 @@ bool ParseID3v2(char *buf, int tag_size, WDL_StringKeyedArray<char*> *metadata, 
       continue;
     }
 
-    int grouped=0;
     if (buf[3]!=2)
     {
       char fmt_flags=buf[id3_pos+1];
@@ -355,8 +352,9 @@ bool ParseID3v2(char *buf, int tag_size, WDL_StringKeyedArray<char*> *metadata, 
       }
       else if ((buf[3]==3 && (fmt_flags&0x20)) || (buf[3]==4 && (fmt_flags&0x40)))
       {
-        grouped=1;
         id3_pos++; // skip group byte, included in frame_sz though
+        frame_sz--;
+        if (WDL_NOT_NORMALLY(frame_sz <= 0)) continue; // maybe allow this for some tag types?
       }
     }
     
@@ -546,9 +544,17 @@ bool ParseID3v2(char *buf, int tag_size, WDL_StringKeyedArray<char*> *metadata, 
       }
     }
     
-    id3_pos -= grouped;
     id3_pos += frame_sz;
   }
+  WDL_ASSERT(id3_pos <= 10+tag_size); // did we run past the end?
+#ifdef _DEBUG
+  // the spec requires that any padding should be 0
+  while (id3_pos < 10+tag_size)
+  {
+    WDL_ASSERT(!buf[id3_pos]);
+    id3_pos++;
+  }
+#endif
 
   return has_tag;
 }

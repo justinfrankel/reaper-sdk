@@ -215,6 +215,18 @@ typedef struct reaper_plugin_info_t
     Runs a timer periodically:
       void (*timer_function)();
 
+  hwnd_info:  (6.29+)
+    query information about a hwnd
+      int (*callback)(HWND hwnd, INT_PTR info_type);
+
+    return 0 if hwnd is not a known window, or if info_type is unknown
+
+    info_type:
+       0 = query if hwnd should be treated as a text-field for purposes of global hotkeys
+           return: 1 if text field
+           return: -1 if not text field
+
+
   file_in_project_ex:
   accel_section:
   action_help:
@@ -304,6 +316,12 @@ struct MIDI_event_t
     }
     return false;
   }
+
+  enum {
+   CC_ALL_SOUND_OFF=120,
+   CC_ALL_NOTES_OFF=123,
+   CC_EOF_INDICATOR = CC_ALL_NOTES_OFF
+  };
 };
 
 class MIDI_eventlist
@@ -320,7 +338,7 @@ protected:
   virtual ~MIDI_eventlist() { }
 };
 
-typedef struct
+typedef struct _MIDI_eventprops
 {
   double ppqpos;
   double ppqpos_end_or_bezier_tension; // only for note events or CC events
@@ -338,7 +356,7 @@ typedef struct
 
 
 
-typedef struct
+typedef struct _PCM_source_transfer_t
 {
   double time_s; // start time of block
 
@@ -359,7 +377,7 @@ typedef struct
 
 class REAPER_PeakGet_Interface;
 
-typedef struct
+typedef struct _PCM_source_peaktransfer_t
 {
   double start_time; // start time of block
   double peakrate;   // peaks per second (see samplerate below)
@@ -513,6 +531,15 @@ typedef struct
   // WM_SETCURSOR handlers should set *extraParms[0] = hcursor
 } REAPER_inline_positioninfo;
 
+
+typedef struct
+{
+  double timepos, qnpos, bpm;
+  int tsnum, tsdenom;
+  int flag; // &1=linear tempo change, &2=internal use
+} REAPER_tempochg;
+
+
 #define PCM_SOURCE_EXT_INLINEEDITOR 0x100  /* parm1 = (void *)(INT_PTR)message, parm2/parm3 = parms
 
                              note: for the WM_* constants, you can use windows.h if on Windows, and SWELL's definitions if on other platforms
@@ -585,7 +612,7 @@ typedef struct
 #define PCM_SOURCE_EXT_GETBPMANDINFO 0x40000 // parm1=pointer to double for bpm. parm2=pointer to double for snap/downbeat offset (seconds).
 #define PCM_SOURCE_EXT_GETNTRACKS 0x80000 // for midi data, returns number of tracks that would have been available
 #define PCM_SOURCE_EXT_GETTITLE   0x80001 // parm1=(char**)title (string persists in plugin)
-#define PCM_SOURCE_EXT_GETTEMPOMAP 0x80002
+#define PCM_SOURCE_EXT_ENUMTEMPOMAP 0x80002 // parm1=index, parm2=pointer to REAPER_tempochg, returns 0 if no tempo map or enumeration complete
 #define PCM_SOURCE_EXT_WANTOLDBEATSTYLE 0x80003
 #define PCM_SOURCE_EXT_GETNOTATIONSETTINGS 0x80004 // parm1=(int)what, (what==0) => parm2=(double*)keysigmap, parm3=(int*)keysigmapsize; (what==1) => parm2=(int*)display transpose semitones, (what==2) => parm2=(char*)clef1, parm3=(char*)clef2
 #define PCM_SOURCE_EXT_WANTTRIM 0x90002 // bla
@@ -740,6 +767,7 @@ class PCM_sink
 #define PCM_SINK_EXT_GETBITDEPTH 0x80005 // parm1 = (int*) bitdepth (return 1 if supported)
 #define PCM_SINK_EXT_ADDCUE 0x80006 // parm1=(PCM_cue*)cue OR parm2=(double*)transient position
 #define PCM_SINK_EXT_SETCURBLOCKTIME 0x80007 // parm1 = (double *) project position -- called before each WriteDoubles etc
+#define PCM_SINK_EXT_IS_VIDEO 0x80008
 
 typedef struct  // register using "pcmsink"
 {

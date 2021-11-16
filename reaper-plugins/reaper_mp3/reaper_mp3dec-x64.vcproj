@@ -253,6 +253,7 @@
 				ObjectFile=".\Release32/"
 				ProgramDataBaseFileName=".\Release32/"
 				SuppressStartupBanner="true"
+				DebugInformationFormat="3"
 				DisableSpecificWarnings="4312;4311"
 			/>
 			<Tool
@@ -271,6 +272,7 @@
 				OutputFile="../Release32/Plugins/reaper_mp3dec.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
+				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Release32/reaper_mp3dec.pdb"
 				OptimizeForWindows98="1"
 				ImportLibrary=".\Release32/reaper_mp3dec.lib"
@@ -367,7 +369,6 @@
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Release64/reaper_mp3dec.pdb"
-				GenerateMapFile="true"
 				MapFileName=".\Release64/reasomething.map"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"

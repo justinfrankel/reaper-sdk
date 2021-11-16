@@ -255,6 +255,7 @@
 				ObjectFile=".\Release32/"
 				ProgramDataBaseFileName=".\Release32/"
 				SuppressStartupBanner="true"
+				DebugInformationFormat="3"
 				DisableSpecificWarnings="4312;4311"
 			/>
 			<Tool
@@ -274,6 +275,7 @@
 				OutputFile="../Release32/Plugins/reaper_csurf.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
+				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Release32/reaper_csurf.pdb"
 				OptimizeForWindows98="1"
 				ImportLibrary=".\Release32/reaper_csurf.lib"
@@ -371,7 +373,6 @@
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Release64/reaper_csurf.pdb"
-				GenerateMapFile="true"
 				MapFileName=".\Release64/reasomething.map"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"

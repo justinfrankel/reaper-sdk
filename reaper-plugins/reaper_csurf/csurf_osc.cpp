@@ -28,7 +28,7 @@ extern void (*update_disk_counters)(int read, int write);
 #define CSURF_EXT_SETFXOPEN_IMPL (CSURF_EXT_SETFXOPEN+CSURF_EXT_IMPL_ADD)
 
 
-#define MAX_LASTTOUCHED_TRACK 512
+#define MAX_LASTTOUCHED_TRACK 2048
 #define ROTARY_STEP (1.0/1024.0)
 
 #define FX_IDX_MODE_REC 0x1000000
