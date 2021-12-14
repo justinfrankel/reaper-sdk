@@ -64,27 +64,37 @@ typedef double ReaSample;
 #define INT64_CONSTANT(x) (x##LL)
 #endif
 
+#ifdef __GNUC__
+  #define REAPER_STATICFUNC __attribute__((unused)) static
+#else
+  #define REAPER_STATICFUNC static
+#endif
+
 /* 
 ** Endian-tools and defines (currently only __ppc__ and BIG_ENDIAN is recognized, for OS X -- all other platforms are assumed to be LE)
 */
 
-static int REAPER_BSWAPINT(int x)
+REAPER_STATICFUNC int REAPER_BSWAPINT(int x)
 {
   return ((((x))&0xff)<<24)|((((x))&0xff00)<<8)|((((x))&0xff0000)>>8)|(((x)>>24)&0xff);
 }
-static void REAPER_BSWAPINTMEM(void *buf)
+REAPER_STATICFUNC void REAPER_BSWAPINTMEM(void *buf)
 {
-  char *p=(char *)buf;
-  char tmp=p[0]; p[0]=p[3]; p[3]=tmp;
+  char p[4],tmp;
+  memcpy(p,buf,4);
+  tmp=p[0]; p[0]=p[3]; p[3]=tmp;
   tmp=p[1]; p[1]=p[2]; p[2]=tmp;
+  memcpy(buf,p,4);
 }
-static void REAPER_BSWAPINTMEM8(void *buf)
+REAPER_STATICFUNC void REAPER_BSWAPINTMEM8(void *buf)
 {
-  char *p=(char *)buf;
-  char tmp=p[0]; p[0]=p[7]; p[7]=tmp;
+  char p[8],tmp;
+  memcpy(p,buf,8);
+  tmp=p[0]; p[0]=p[7]; p[7]=tmp;
   tmp=p[1]; p[1]=p[6]; p[6]=tmp;
   tmp=p[2]; p[2]=p[5]; p[5]=tmp;
   tmp=p[3]; p[3]=p[4]; p[4]=tmp;
+  memcpy(buf,p,8);
 }
 
 #if defined(__ppc__)
@@ -468,7 +478,7 @@ class PCM_source
     virtual bool IsAvailable()=0;
     virtual void SetAvailable(bool avail) { } // optional, if called with avail=false, close files/etc, and so on
     virtual const char *GetType()=0;
-    virtual const char *GetFileName() { return NULL; }; // return NULL if no filename (not purely a file)
+    virtual const char *GetFileName() { return NULL; } // return NULL if no filename (not purely a file)
     virtual bool SetFileName(const char *newfn)=0; // return TRUE if supported, this will only be called when offline
 
     virtual PCM_source *GetSource() { return NULL; }
@@ -605,17 +615,21 @@ typedef struct
 #define PCM_SOURCE_EXT_ISOPENEDITOR 0x1000C // returns 1 if this source is currently open in an editor, 2 if open in a secondary editor. parm1=1 to close. parm2=(int*)&flags to get extra flags (&1=editor is currently hidden)
 #define PCM_SOURCE_EXT_SETEDITORGRID 0x1000D // parm1=(double*)griddiv: 0.25=quarter note, 1.0/3.0=half note triplet, etc. parm2=int* swingmode(1=swing), parm3=double*swingamt
 #define PCM_SOURCE_EXT_GETITEMCONTEXT 0x10010 // parm1=MediaItem**, parm2=MediaItem_Take**, parm3=MediaTrack**
-#define PCM_SOURCE_EXT_GETALLMETADATA 0x10011 // parm1=(WDL_StringKeyedArray<char*>**), internal use only
+#define PCM_SOURCE_EXT_GETALLMETADATA_DEPRECATED 0x10011 // no longer supported
 #define PCM_SOURCE_EXT_GETBITRATE 0x10012 // parm1=(double*)bitrate, if different from samplerate*channels*bitdepth/length
+#define PCM_SOURCE_EXT_ENUMMETADATA 0x10013 // parm1=(int)index, parm2=(const char**)key, parm3=(const char**)value. enumerates all metadata, returns 0 when no more metadata exists
+#define PCM_SOURCE_EXT_GETINFOSTRING 0x10014 // parm1=(char*)buffer, parm2=(int)buffer length, return the data that would be displayed in the properties window
 #define PCM_SOURCE_EXT_CONFIGISFILENAME 0x20000
-#define PCM_SOURCE_EXT_WRITEMETADATA 0x20007 // parm1=char* new file name, parm2=WDL_StringKeyedArray<char*>* new metadata. metadata keys are the defined strings from PCM_SOURCE_EXT_GETMETADATA. parm3=flags (&1=merge, &2=do not allow update in-place). return 1 if successfully generated a new file, 2 if original file was updated
+#define PCM_SOURCE_EXT_WRITEMETADATA_DEPRECATED 0x20007 // no longer supported
+#define PCM_SOURCE_EXT_WRITE_METADATA 0x20008 // parm1=char* new file name, parm2=(char**)NULL-terminated array of key,value,key2,value2,... pointers, parm3=flags (&1=merge, &2=do not allow update in-place). returns 1 if successfully generated a new file, 2 if original file was updated
 #define PCM_SOURCE_EXT_GETBPMANDINFO 0x40000 // parm1=pointer to double for bpm. parm2=pointer to double for snap/downbeat offset (seconds).
 #define PCM_SOURCE_EXT_GETNTRACKS 0x80000 // for midi data, returns number of tracks that would have been available
 #define PCM_SOURCE_EXT_GETTITLE   0x80001 // parm1=(char**)title (string persists in plugin)
 #define PCM_SOURCE_EXT_ENUMTEMPOMAP 0x80002 // parm1=index, parm2=pointer to REAPER_tempochg, returns 0 if no tempo map or enumeration complete
 #define PCM_SOURCE_EXT_WANTOLDBEATSTYLE 0x80003
 #define PCM_SOURCE_EXT_GETNOTATIONSETTINGS 0x80004 // parm1=(int)what, (what==0) => parm2=(double*)keysigmap, parm3=(int*)keysigmapsize; (what==1) => parm2=(int*)display transpose semitones, (what==2) => parm2=(char*)clef1, parm3=(char*)clef2
-#define PCM_SOURCE_EXT_WANTTRIM 0x90002 // bla
+#define PCM_SOURCE_EXT_WANT_TRIM 0x90001 // parm1=(int64*)total number of decoded samples after trimming, parm2=(int*)number of samples to trim from start, parm3=(int*)number of samples to trim from end
+#define PCM_SOURCE_EXT_WANTTRIM_DEPRECATED 0x90002 // no longer supported
 #define PCM_SOURCE_EXT_TRIMITEM 0x90003 // parm1=lrflag, parm2=double *{position,length,startoffs,rate}
 #define PCM_SOURCE_EXT_EXPORTTOFILE 0x90004 // parm1=output filename, only currently supported by MIDI but in theory any source could support this
 #define PCM_SOURCE_EXT_ENUMCUES 0x90005 // DEPRECATED, use PCM_SOURCE_EXT_ENUMCUES_EX instead.  parm1=(int) index of cue to get (-1 to free cue), parm2=(optional)REAPER_cue **.  Returns 0 and sets parm2 to NULL when out of cues. return value otherwise is how much to advance parm2 (1, or 2 usually)
@@ -760,7 +774,7 @@ class PCM_sink
 };
 
 #define PCM_SINK_EXT_CREATESOURCE 0x80000 // parm1 = PCM_source ** (will be created if supported)
-#define PCM_SINK_EXT_DONE 0x80001 // parm1 = HWND of the render dialog
+#define PCM_SINK_EXT_DONE 0x80001 // parm1 = optional HWND of the render dialog in case the sink needs more user interaction, parm2 = optional (char**)NULL-terminated array of key,value,key2,value2,... pointers if the sink supports updating metadata after write (may require the caller to have set padded metadata via SetCurrentSinkMetadata before creating the sink)
 #define PCM_SINK_EXT_VERIFYFMT 0x80002 // parm1=int *srate, parm2= int *nch. plugin can override (and return 1!!)
 #define PCM_SINK_EXT_SETQUANT 0x80003 // parm1 = (midi_quantize_mode_t*), or NULL to disable
 #define PCM_SINK_EXT_SETRATE 0x80004 // parm1 = (double *) rateadj

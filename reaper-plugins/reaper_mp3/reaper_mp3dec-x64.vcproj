@@ -19,8 +19,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory=".\Debug32"
-			IntermediateDirectory=".\Debug32"
+			OutputDirectory="../Debug32/objs/$(ProjectName)"
+			IntermediateDirectory="../Debug32/objs/$(ProjectName)"
 			ConfigurationType="2"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
@@ -45,7 +45,7 @@
 				MkTypLibCompatible="true"
 				SuppressStartupBanner="true"
 				TargetEnvironment="1"
-				TypeLibraryName=".\Debug32/reaper_mp3dec.tlb"
+				TypeLibraryName="../Debug32/objs/$(ProjectName)/$(ProjectName).tlb"
 				HeaderFileName=""
 			/>
 			<Tool
@@ -56,10 +56,6 @@
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				PrecompiledHeaderFile=".\Debug32/reaper_mp3dec.pch"
-				AssemblerListingLocation=".\Debug32/"
-				ObjectFile=".\Debug32/"
-				ProgramDataBaseFileName=".\Debug32/"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="4"
 				DisableSpecificWarnings="4312;4311"
@@ -81,8 +77,7 @@
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile=".\Debug32/reaper_mp3dec.pdb"
-				ImportLibrary=".\Debug32/reaper_mp3dec.lib"
+				ImportLibrary="../Debug32/objs/$(ProjectName)/$(ProjectName).lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -97,7 +92,7 @@
 			<Tool
 				Name="VCBscMakeTool"
 				SuppressStartupBanner="true"
-				OutputFile=".\Debug32/reaper_mp3dec.bsc"
+				OutputFile="../Debug32/objs/$(ProjectName)/$(ProjectName).bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -114,8 +109,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|x64"
-			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory="../Debug64/objs/$(ProjectName)"
+			IntermediateDirectory="../Debug64/objs/$(ProjectName)"
 			ConfigurationType="2"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
@@ -140,7 +135,7 @@
 				MkTypLibCompatible="true"
 				SuppressStartupBanner="true"
 				TargetEnvironment="3"
-				TypeLibraryName=".\Debug64/reaper_mp3dec-x64.tlb"
+				TypeLibraryName="../Debug64/objs/$(ProjectName)/$(ProjectName).tlb"
 				HeaderFileName=""
 			/>
 			<Tool
@@ -151,10 +146,6 @@
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				PrecompiledHeaderFile=".\Debug64/reaper_mp3dec-x64.pch"
-				AssemblerListingLocation=".\Debug64/"
-				ObjectFile=".\Debug64/"
-				ProgramDataBaseFileName=".\Debug64/"
 				SuppressStartupBanner="true"
 				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
@@ -176,8 +167,7 @@
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile=".\Debug64/reaper_mp3dec.pdb"
-				ImportLibrary=".\Debug64/reaper_mp3dec.lib"
+				ImportLibrary="../Debug64/objs/$(ProjectName)/$(ProjectName).lib"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -192,7 +182,7 @@
 			<Tool
 				Name="VCBscMakeTool"
 				SuppressStartupBanner="true"
-				OutputFile=".\Debug64/reaper_mp3dec-x64.bsc"
+				OutputFile="../Debug64/objs/$(ProjectName)/$(ProjectName).bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -209,8 +199,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory=".\Release32"
-			IntermediateDirectory=".\Release32"
+			OutputDirectory="../Release32/objs/$(ProjectName)"
+			IntermediateDirectory="../Release32/objs/$(ProjectName)"
 			ConfigurationType="2"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
@@ -235,7 +225,7 @@
 				MkTypLibCompatible="true"
 				SuppressStartupBanner="true"
 				TargetEnvironment="1"
-				TypeLibraryName=".\Release32/reaper_mp3dec.tlb"
+				TypeLibraryName="../Release32/objs/$(ProjectName)/$(ProjectName).tlb"
 				HeaderFileName=""
 			/>
 			<Tool
@@ -248,10 +238,6 @@
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
 				EnableFunctionLevelLinking="true"
-				PrecompiledHeaderFile=".\Release32/reaper_mp3dec.pch"
-				AssemblerListingLocation=".\Release32/"
-				ObjectFile=".\Release32/"
-				ProgramDataBaseFileName=".\Release32/"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
 				DisableSpecificWarnings="4312;4311"
@@ -273,9 +259,8 @@
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile=".\Release32/reaper_mp3dec.pdb"
 				OptimizeForWindows98="1"
-				ImportLibrary=".\Release32/reaper_mp3dec.lib"
+				ImportLibrary="../Release32/objs/$(ProjectName)/$(ProjectName).lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -290,7 +275,7 @@
 			<Tool
 				Name="VCBscMakeTool"
 				SuppressStartupBanner="true"
-				OutputFile=".\Release32/reaper_mp3dec.bsc"
+				OutputFile="../Release32/objs/$(ProjectName)/$(ProjectName).bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -307,8 +292,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|x64"
-			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory="../Release64/objs/$(ProjectName)"
+			IntermediateDirectory="../Release64/objs/$(ProjectName)"
 			ConfigurationType="2"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
@@ -333,7 +318,7 @@
 				MkTypLibCompatible="true"
 				SuppressStartupBanner="true"
 				TargetEnvironment="3"
-				TypeLibraryName=".\Release64/reaper_mp3dec-x64.tlb"
+				TypeLibraryName="../Release64/objs/$(ProjectName)/$(ProjectName).tlb"
 				HeaderFileName=""
 			/>
 			<Tool
@@ -344,10 +329,6 @@
 				PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;NDEBUG;_WINDOWS;_USRDLL;REAPER_WAVE_EXPORTS;USE_ICC;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE"
 				StringPooling="true"
 				EnableFunctionLevelLinking="true"
-				PrecompiledHeaderFile=".\Release64/reaper_mp3dec-x64.pch"
-				AssemblerListingLocation=".\Release64/"
-				ObjectFile=".\Release64/"
-				ProgramDataBaseFileName=".\Release64/"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
 			/>
@@ -368,12 +349,10 @@
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile=".\Release64/reaper_mp3dec.pdb"
-				MapFileName=".\Release64/reasomething.map"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				OptimizeForWindows98="1"
-				ImportLibrary=".\Release64/reaper_mp3dec.lib"
+				ImportLibrary="../Release64/objs/$(ProjectName)/$(ProjectName).lib"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -388,7 +367,7 @@
 			<Tool
 				Name="VCBscMakeTool"
 				SuppressStartupBanner="true"
-				OutputFile=".\Release64/reaper_mp3dec-x64.bsc"
+				OutputFile="../Release64/objs/$(ProjectName)/$(ProjectName).bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"

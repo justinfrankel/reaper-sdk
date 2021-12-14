@@ -40,6 +40,11 @@ extern const char *(*EnumCurrentSinkMetadata)(int cnt, const char **id);
 
 extern HWND g_main_hwnd;
 
+int PackID3Chunk(WDL_HeapBuf *hb, WDL_StringKeyedArray<char*> *metadata,
+  bool want_embed_otherschemes, int *ixml_lenwritten, int ixml_padtolen);
+int ArrayToMetadata(const char **metadata_arr, WDL_StringKeyedArray<char*> *metadata);
+
+
 typedef enum 
 {
 	LQP_NOPRESET=-1,
@@ -274,6 +279,28 @@ class PCM_sink_mp3lame : public PCM_sink
     }
     int Extended(int call, void *parm1, void *parm2, void *parm3) 
     {
+      if (call == PCM_SINK_EXT_DONE)
+      {
+        if (parm2 && WDL_NORMALLY(m_enc && m_fh))
+        {
+          WDL_StringKeyedArray<char*> updated_metadata(true, WDL_StringKeyedArray<char*>::freecharptr);
+          ArrayToMetadata((const char**)parm2, &updated_metadata);
+
+          WDL_HeapBuf hb;
+          int ixmllen=m_enc->GetIXMLLen();
+          if (PackID3Chunk(&hb, &updated_metadata, true, NULL, ixmllen) &&
+            WDL_NORMALLY(hb.GetSize() == m_enc->GetID3Len()))
+          {
+            WDL_INT64 pos=m_fh->GetPosition();
+            m_fh->SetPosition(0);
+            m_fh->Write(hb.Get(), hb.GetSize());
+            m_fh->SetPosition(pos);
+            return 1;
+          }
+        }
+        return 0;
+      }
+
       if (call == PCM_SINK_EXT_VERIFYFMT)
       {
         if (parm1 && parm2)

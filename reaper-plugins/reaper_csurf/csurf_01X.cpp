@@ -254,13 +254,6 @@ PC=>MCU:
   Ex vv vv : set volume fader, x=track index, 8=master
 */
 
-static double charToVol(unsigned char val)
-{
-  double pos=((double)val*1000.0)/127.0;
-  pos=SLIDER2DB(pos);
-  return DB2VAL(pos);
-}
-
 static double int14ToVol(unsigned char msb, unsigned char lsb)
 {
   int val=lsb | (msb<<7);
@@ -297,16 +290,6 @@ static  unsigned char volToChar(double vol)
   else if (d>127.0)d=127.0;
 
   return (unsigned char)(d+0.5);
-}
-
-static double charToPan(unsigned char val)
-{
-  double pos=((double)val*1000.0+0.5)/127.0;
-
-  pos=(pos-500.0)/500.0;
-  if (fabs(pos) < 0.08) pos=0.0;
-
-  return pos;
 }
 
 static unsigned char panToChar(double pan)

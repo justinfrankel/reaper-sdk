@@ -59,7 +59,8 @@ void (*__mergesort)(void *base, size_t nmemb, size_t size, int (*compar)(const v
 #include "../tag.h"
 #include "../metadata.h"
 
-int PackID3Chunk(WDL_HeapBuf *hb, WDL_StringKeyedArray<char*> *metadata, bool want_ixml_xmp);
+int PackID3Chunk(WDL_HeapBuf *hb, WDL_StringKeyedArray<char*> *metadata,
+  bool want_embed_otherschemes, int *ixml_lenwritten, int ixml_padtolen);
 int PackApeChunk(WDL_HeapBuf *hb, WDL_StringKeyedArray<char*> *metadata);
 
 struct ID3Cue
@@ -87,7 +88,7 @@ public:
   PooledDecoderInstance() 
   {
     m_resampler=0;
-    m_resampler_initted=0;
+    m_resampler_state=0;
     m_lastpos = -10000000; 
     m_decode_srcsplpos=0;
     m_file=0;
@@ -104,7 +105,7 @@ public:
   WDL_ResourcePool_ResInfo m_rpoolinfo;
 
   REAPER_Resample_Interface *m_resampler;
-  bool m_resampler_initted;
+  int m_resampler_state;
 
   INT64 m_lastpos,m_decode_srcsplpos;
   mp3_decoder m_decoder;    
@@ -286,6 +287,12 @@ public:
 
 int POOLED_PCMSOURCE_CLASSNAME::PoolExtended(int call, void* parm1, void* parm2, void* parm3)
 {
+  PCM_SOURCE_EXT_GETINFOSTRING_HANDLER
+  if (m_filepool && m_filepool->extraInfo)
+  {
+    PCM_SOURCE_EXT_GETMETADATA_HANDLER(&m_filepool->extraInfo->m_metadata)
+  }
+
   if (call == PCM_SOURCE_EXT_GETBITRATE && m_filepool && m_filepool->extraInfo && parm1)
   {
     WDL_INT64 datalen=m_filepool->extraInfo->m_stream_endpos-m_filepool->extraInfo->m_stream_startpos;
@@ -298,33 +305,18 @@ int POOLED_PCMSOURCE_CLASSNAME::PoolExtended(int call, void* parm1, void* parm2,
     return 1;
   }
 
-  if (call == PCM_SOURCE_EXT_GETMETADATA && m_filepool && m_filepool->extraInfo && parm1 && parm2 && parm3)
-  {
-    const char *mexkey=(const char*)parm1;
-    char *buf=(char*)parm2;
-    int len=(int)(INT_PTR)parm3;
-    if (len) buf[0]=0;
-
-    HandleMexMetadataRequest(mexkey, buf, len, &m_filepool->extraInfo->m_metadata);
-
-    return strlen(buf);
-  }
-
-  if (call == PCM_SOURCE_EXT_GETALLMETADATA && parm1)
-  {
-    *(WDL_StringKeyedArray<char*>**)parm1=&m_filepool->extraInfo->m_metadata;
-    return 1;
-  }
-
-  if (call == PCM_SOURCE_EXT_WRITEMETADATA && parm1 && parm2 && m_filepool && m_filepool->extraInfo)
+  if (call == PCM_SOURCE_EXT_WRITE_METADATA && parm1 && parm2 && m_filepool && m_filepool->extraInfo)
   {
     const char *newfn=(const char*)parm1;
-    WDL_StringKeyedArray<char*> *mex_metadata=(WDL_StringKeyedArray<char*>*)parm2;
+    const char **metadata_arr=(const char**)parm2;
     bool merge=!!parm3;
+
+    WDL_StringKeyedArray<char*> mex_metadata(true, WDL_StringKeyedArray<char*>::freecharptr);
+    ArrayToMetadata(metadata_arr, &mex_metadata);
 
     WDL_StringKeyedArray<char*> metadata(false, WDL_StringKeyedArray<char*>::freecharptr);
     if (merge) CopyMetadata(&m_filepool->extraInfo->m_metadata, &metadata);
-    AddMexMetadata(mex_metadata, &metadata, m_filepool->extraInfo->m_srate);
+    AddMexMetadata(&mex_metadata, &metadata, m_filepool->extraInfo->m_srate);
 
     const char *fn=GetFileName();
     WDL_FileRead *fr=new WDL_FileRead(fn);
@@ -345,7 +337,7 @@ int POOLED_PCMSOURCE_CLASSNAME::PoolExtended(int call, void* parm1, void* parm2,
     }
     else
     {
-      int id3len=PackID3Chunk(&hb, &metadata, true);
+      int id3len=PackID3Chunk(&hb, &metadata, true, NULL, 0);
       if (id3len && ok) ok = fw->Write(hb.Get(), id3len) == id3len;
       hb.Resize(0, false);
     }
@@ -462,26 +454,11 @@ void PCM_source_mp3::PooledGetSamples(PCM_source_transfer_t *block, PooledDecode
     poolreadinst->m_lastpos=-1000; // force a reset of any SRC
   }
 
-  int do_resample=0;
   ReaSample *sampleoutptr=block->samples;
   int len=block->length;
-  double lat=0.0;
   const int decsr=m_filepool->extraInfo->m_srate;
-  if (fabs(decsr-block->samplerate)>=0.00001)
-  {
-    if (!poolreadinst->m_resampler_initted && !poolreadinst->m_resampler)
-    {
-      poolreadinst->m_resampler_initted=true;
-      poolreadinst->m_resampler=Resampler_Create();
-    }
-    if (poolreadinst->m_resampler)
-    {
-      do_resample=1;
-      poolreadinst->m_resampler->Extended(RESAMPLE_EXT_SETRSMODE,rsModeToUse,NULL,NULL);
-      poolreadinst->m_resampler->SetRates(decsr,block->samplerate);
-      lat=poolreadinst->m_resampler->GetCurrentLatency();
-    }
-  }
+
+  POOLED_GETSAMPLES_MANAGE_RESAMPLER(decsr)
 
   if (block->absolute_time_s==-100000.0) poolreadinst->m_lastpos=-100000;
 
@@ -490,17 +467,9 @@ void PCM_source_mp3::PooledGetSamples(PCM_source_transfer_t *block, PooledDecode
     mp3_index *mindex = m_filepool->extraInfo->m_index;
     INT64 splpos = (INT64) (block->time_s * decsr + 0.5);
 
-    if (poolreadinst->m_resampler) 
-    {
-      if (do_resample)
-      {
-        ON_SEEK_RESAMPLER(splpos,block,poolreadinst->m_resampler,decsr)
-      }
-      else
-        poolreadinst->m_resampler->Reset();
-    }
-    poolreadinst->m_decode_srcsplpos = splpos;
+    POOLED_GETSAMPLES_ON_SEEK(splpos, decsr)
 
+    poolreadinst->m_decode_srcsplpos = splpos;
 
     if (mindex && mindex->GetFrameCount() > 0)
     {
@@ -686,91 +655,99 @@ int PCM_source_mp3::PropertiesWindow(HWND hwndParent)
   return (int)DialogBoxParam(g_hInst,MAKEINTRESOURCE(IDD_MP3ITEMINFO),hwndParent,_dlgProc,(LPARAM)this);
 }
 
+void PCM_source_mp3::GetPropsStr(WDL_FastString &s)
+{
+  if (!IsAvailable())
+  {
+    if (!m_filepool || !m_filepool->extraInfo)
+    {
+      s.Set(m_isOffline ? __LOCALIZE("File offline","mp3dec_DLG_120") : __LOCALIZE("File not opened","mp3dec_DLG_120"));
+    }
+    else if (m_filepool->extraInfo->m_err)
+    {
+      s.Set(m_filepool->extraInfo->m_err);
+    }
+    else
+    {
+      s.Set(__LOCALIZE("Unknown error/status","mp3dec_DLG_120"));
+    }
+  }
+  else
+  {
+    char buf[512];
+    PooledDecoderInstance *inst=GetFile();
+    if (inst)
+    {
+      s.AppendFormatted(512,__LOCALIZE_VERFMT("MPEG layer %d, @ %d Hz %d channels","mp3dec_DLG_120"),inst->m_decoder.GetLayer(),inst->m_decoder.GetSampleRate(),inst->m_decoder.GetNumChannels());
+      s.Append("\r\n");
+      ReleaseFile(inst,0);
+    }
+
+    if (m_filepool && m_filepool->extraInfo && m_filepool->extraInfo->m_index && m_filepool->extraInfo->m_index->GetFrameCount())
+    {
+      s.Append(__LOCALIZE("Length:","mp3dec_DLG_120"));
+      s.Append(" ");
+      format_timestr(m_filepool->extraInfo->GetLengthSamples(m_adjustLatency) / (double)m_filepool->extraInfo->m_srate,buf,sizeof(buf));
+      s.Append(buf);
+      s.Append("\r\n");
+
+      const char* encstr = __LOCALIZE("CBR (no header)","mp3dec_DLG_120");
+      int t = m_filepool->extraInfo->m_index->m_encodingtag;
+      if (t == 0) encstr = __LOCALIZE("VBR","mp3dec_DLG_120");
+      else if (t == 1) encstr = __LOCALIZE("ABR","mp3dec_DLG_120");
+      else if (t == 2) encstr = __LOCALIZE("CBR","mp3dec_DLG_120");
+      s.AppendFormatted(512,__LOCALIZE_VERFMT("Encoding: %s","mp3dec_DLG_120"),encstr);
+      s.Append("\r\n");
+      s.AppendFormatted(512,__LOCALIZE_VERFMT("Channel Mode: %s","mp3dec_DLG_120"),
+          m_filepool->extraInfo->m_channel_mode==0 ? __LOCALIZE("Stereo","mp3dec_DLG_120") :
+          m_filepool->extraInfo->m_channel_mode==1 ? __LOCALIZE("Joint Stereo","mp3dec_DLG_120") :
+          m_filepool->extraInfo->m_channel_mode==2 ? __LOCALIZE("Dual Stereo","mp3dec_DLG_120") :
+          m_filepool->extraInfo->m_channel_mode==3 ? __LOCALIZE("Mono","mp3dec_DLG_120") :
+                                                      __LOCALIZE("(not available)","mp3dec_DLG_120"));
+      s.Append("\r\n");
+
+      s.AppendFormatted(512,__LOCALIZE_VERFMT("Bitrate (average): %.0f kbps","mp3dec_DLG_120"),
+        (double)(m_filepool->extraInfo->m_stream_endpos - m_filepool->extraInfo->m_stream_startpos) /
+            (m_filepool->extraInfo->GetLengthSamples(m_adjustLatency)/(double)m_filepool->extraInfo->m_srate) * 8.0/1000.0);
+      s.Append("\r\n");
+
+      s.AppendFormatted(512,__LOCALIZE_VERFMT("%d frames in file [indexed]","mp3dec_DLG_120"),m_filepool->extraInfo->m_index->GetFrameCount());
+      s.Append("\r\n");
+    }
+    else
+    {
+      s.Append(__LOCALIZE("No index found [error]!","mp3dec_DLG_120"));
+      s.Append("\r\n");
+    }
+
+    double prefpos=GetPreferredPosition();
+    if (prefpos > 0.0)
+    {
+      format_timestr(prefpos, buf, sizeof(buf));
+      s.AppendFormatted(512, "Start offset: %s\r\n", buf);
+    }
+
+    if (m_filepool && m_filepool->extraInfo)
+    {
+      DumpMetadata(&s, &m_filepool->extraInfo->m_metadata);
+    }
+  }
+}
 
 WDL_DLGRET PCM_source_mp3::propsDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   switch (uMsg)
   {
     case WM_INITDIALOG:
+    {
       SetDlgItemText(hwndDlg,IDC_NAME,GetFileName());
-
       CheckDlgButton(hwndDlg,IDC_CHECK1,m_adjustLatency?BST_CHECKED:BST_UNCHECKED);
-      if (!IsAvailable())
-      {
-        if (!m_filepool||!m_filepool->extraInfo)
-        {
-          SetDlgItemText(hwndDlg,IDC_INFO,m_isOffline?__LOCALIZE("File offline","mp3dec_DLG_120"):__LOCALIZE("File not opened","mp3dec_DLG_120"));
-        }
-        else if (m_filepool->extraInfo->m_err)
-          SetDlgItemText(hwndDlg,IDC_INFO,m_filepool->extraInfo->m_err);
-        else 
-          SetDlgItemText(hwndDlg,IDC_INFO,__LOCALIZE("Unknown error/status","mp3dec_DLG_120"));
-      }
-      else
-      {
-        char buf[512];
-        WDL_FastString s;
-        PooledDecoderInstance *inst=GetFile();
-        if (inst)
-        {
-          s.AppendFormatted(512,__LOCALIZE_VERFMT("MPEG layer %d, @ %d Hz %d channels","mp3dec_DLG_120"),inst->m_decoder.GetLayer(),inst->m_decoder.GetSampleRate(),inst->m_decoder.GetNumChannels());
-          s.Append("\r\n");
-          ReleaseFile(inst,0);
-        }
-
-        if (m_filepool && m_filepool->extraInfo && m_filepool->extraInfo->m_index && m_filepool->extraInfo->m_index->GetFrameCount())
-        {
-          s.Append(__LOCALIZE("Length:","mp3dec_DLG_120"));
-          s.Append(" ");
-          format_timestr(m_filepool->extraInfo->GetLengthSamples(m_adjustLatency) / (double)m_filepool->extraInfo->m_srate,buf,sizeof(buf));
-          s.Append(buf);
-          s.Append("\r\n");
-
-          const char* encstr = __LOCALIZE("CBR (no header)","mp3dec_DLG_120");
-          int t = m_filepool->extraInfo->m_index->m_encodingtag;
-          if (t == 0) encstr = __LOCALIZE("VBR","mp3dec_DLG_120");
-          else if (t == 1) encstr = __LOCALIZE("ABR","mp3dec_DLG_120");
-          else if (t == 2) encstr = __LOCALIZE("CBR","mp3dec_DLG_120");
-          s.AppendFormatted(512,__LOCALIZE_VERFMT("Encoding: %s","mp3dec_DLG_120"),encstr);
-          s.Append("\r\n");
-          s.AppendFormatted(512,__LOCALIZE_VERFMT("Channel Mode: %s","mp3dec_DLG_120"),
-              m_filepool->extraInfo->m_channel_mode==0 ? __LOCALIZE("Stereo","mp3dec_DLG_120") :
-              m_filepool->extraInfo->m_channel_mode==1 ? __LOCALIZE("Joint Stereo","mp3dec_DLG_120") :
-              m_filepool->extraInfo->m_channel_mode==2 ? __LOCALIZE("Dual Stereo","mp3dec_DLG_120") :
-              m_filepool->extraInfo->m_channel_mode==3 ? __LOCALIZE("Mono","mp3dec_DLG_120") : 
-                                                         __LOCALIZE("(not available)","mp3dec_DLG_120"));
-          s.Append("\r\n");
-
-          s.AppendFormatted(512,__LOCALIZE_VERFMT("Bitrate (average): %.0f kbps","mp3dec_DLG_120"),
-            (double)(m_filepool->extraInfo->m_stream_endpos - m_filepool->extraInfo->m_stream_startpos) / 
-                (m_filepool->extraInfo->GetLengthSamples(m_adjustLatency)/(double)m_filepool->extraInfo->m_srate) * 8.0/1000.0);
-          s.Append("\r\n");
-
-          s.AppendFormatted(512,__LOCALIZE_VERFMT("%d frames in file [indexed]","mp3dec_DLG_120"),m_filepool->extraInfo->m_index->GetFrameCount());
-          s.Append("\r\n");
-        }
-        else
-        {
-          s.Append(__LOCALIZE("No index found [error]!","mp3dec_DLG_120"));
-          s.Append("\r\n");
-        }
-
-        double prefpos=GetPreferredPosition();
-        if (prefpos > 0.0)
-        {
-          format_timestr(prefpos, buf, sizeof(buf));
-          s.AppendFormatted(512, "Start offset: %s\r\n", buf);
-        }
-
-        if (m_filepool && m_filepool->extraInfo)
-        {
-          DumpMetadata(&s, &m_filepool->extraInfo->m_metadata);
-        }
-
-        SetDlgItemText(hwndDlg,IDC_INFO,s.Get());
-      }
-
+      WDL_FastString s;
+      GetPropsStr(s);
+      SetDlgItemText(hwndDlg,IDC_INFO,s.Get());
+    }
     return 0;
+
     case WM_COMMAND:
       switch (LOWORD(wParam))
       {
@@ -1008,21 +985,14 @@ public:
 
   virtual int Extended(int call, void *parm1, void *parm2, void *parm3)
   {
+    PCM_SOURCE_EXT_GETMETADATA_HANDLER(&m_metadata)
+
     if (call == PCM_SOURCE_EXT_GETBITRATE && parm1)
     {
       *(double*)parm1=m_bitrate;
       return 1;
     }
-    if (call == PCM_SOURCE_EXT_GETMETADATA && parm1 && parm2 && parm3)
-    {
-      const char *mexkey=(const char*)parm1;
-      char *buf=(char*)parm2;
-      int len=(int)(INT_PTR)parm3;
 
-      HandleMexMetadataRequest(mexkey, buf, len, &m_metadata);
-
-      return strlen(buf);
-    }
     return 0;
   }
 };

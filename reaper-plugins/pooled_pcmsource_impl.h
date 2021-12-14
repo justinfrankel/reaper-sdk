@@ -1,15 +1,9 @@
+#ifndef POOLEDSRC_ONLY_HELPER_MACROS
+
 #include "../WDL/rpool.h"
 #include "../WDL/poollist.h"
 
 #define DECODER_POOL_OWNAFTERREAD 3000
-
-// no longer use RESAMPLE_EXT_RESETWITHFRACPOS, fixes a minor portion of t=70178 (inaudible but visible on the spectrum)
-#define ON_SEEK_RESAMPLER(tpos,block, rs, msrate) { \
-            tpos=(INT64)floor(block->time_s * msrate); \
-            rs->Reset(); \
-            }
-
-
 
 #ifndef NUM_SOURCE_POOLS
 #define NUM_SOURCE_POOLS 3 // default is 0=normal, 1=peaks, 2=hi-res peaks
@@ -439,6 +433,26 @@ class POOLED_PCMSOURCE_CLASSNAME : public PCM_source
     } // called when done
 
 
+#define PCM_SOURCE_EXT_GETINFOSTRING_HANDLER \
+  if (call == PCM_SOURCE_EXT_GETINFOSTRING && parm1 && parm2) \
+  { \
+    WDL_FastString s; GetPropsStr(s); \
+    lstrcpyn((char*)parm1, s.Get(), (int)(INT_PTR)parm2); \
+    return s.GetLength() ? 1 : 0; \
+  }
+
+#define PCM_SOURCE_EXT_GETMETADATA_HANDLER(metadata) \
+  if (call == PCM_SOURCE_EXT_GETMETADATA && parm1 && parm2 && parm3) \
+  { \
+    HandleMexMetadataRequest((const char*)parm1, (char*)parm2, (int)(INT_PTR)parm3, (metadata)); \
+    return strlen((char*)parm2); \
+  } \
+  if (call == PCM_SOURCE_EXT_ENUMMETADATA && parm2 && parm3) \
+  { \
+    const char *k, *v=(metadata)->Enumerate((int)(INT_PTR)parm1, &k); if (!k || !v) return 0; \
+    *(const char**)parm2=k; *(const char**)parm3=v; return 1; \
+  }
+
     int Extended(int call, void *parm1, void *parm2, void *parm3) 
     { 
       if (call == PCM_SOURCE_EXT_ENDPLAYNOTIFY)
@@ -470,10 +484,9 @@ class POOLED_PCMSOURCE_CLASSNAME : public PCM_source
 
     void *m_resampler_rsmode;
 
-
+  void GetPropsStr(WDL_FastString &s);
   WDL_DLGRET propsDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
   static WDL_DLGRET _dlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
-
 
   bool m_isavail;
 
@@ -568,7 +581,7 @@ public:
   PooledDecoderInstance() 
   {
     m_resampler=0;
-    m_resampler_initted=0;
+    m_resampler_state=0;
     m_lastpos = -10000000; 
   }
   ~PooledDecoderInstance() 
@@ -579,7 +592,7 @@ public:
   WDL_ResourcePool_ResInfo m_rpoolinfo;
 
   REAPER_Resample_Interface *m_resampler;
-  bool m_resampler_initted;
+  int m_resampler_state;
   INT64 m_lastpos;
 };
 
@@ -642,7 +655,7 @@ int POOLED_PCMSOURCE_CLASSNAME::PoolExtended(int call, void* parm1, void* parm2,
 
   */
 
-#ifndef POOLEDSRC_GETPEAKINFO_NOIMPL
+#ifndef POOLEDSRC_NOGARBAGECOLLECT
 static int pooled_pcm_source_garbage_collect(int flags)
 {
   int rv = 0;
@@ -697,4 +710,36 @@ static int pooled_pcm_source_garbage_collect(int flags)
 
 #define POOLED_PCM_INIT(rec) \
   (rec)->Register("open_file_reduce",(void *)&pooled_pcm_source_garbage_collect)
-#endif // POOLEDSRC_GETPEAKINFO_NOIMPL
+
+#endif // POOLEDSRC_NOGARBAGECOLLECT
+
+#endif // POOLEDSRC_ONLY_HELPER_MACROS
+
+// m_resampler_state=0 for not yet initialized, 1=active, 2=inactive
+#define POOLED_GETSAMPLES_MANAGE_RESAMPLER(msrate) \
+  double lat=0.0; \
+  int do_resample=0; \
+  if (fabs(msrate-block->samplerate)>=0.00001) { \
+    if (!poolreadinst->m_resampler_state && WDL_NORMALLY(!poolreadinst->m_resampler)) \
+      poolreadinst->m_resampler = Resampler_Create(); \
+    do_resample = poolreadinst->m_resampler_state = 1; \
+  } else if (poolreadinst->m_resampler_state == 1) do_resample = 2; \
+  if (do_resample) { \
+    if (WDL_NORMALLY(poolreadinst->m_resampler)) { \
+      poolreadinst->m_resampler->Extended(RESAMPLE_EXT_SETRSMODE,rsModeToUse,NULL,NULL); \
+      poolreadinst->m_resampler->SetRates(msrate,block->samplerate); \
+      lat = poolreadinst->m_resampler->GetCurrentLatency(); \
+    } else do_resample = 0; \
+  }
+
+#define POOLED_GETSAMPLES_ON_SEEK(tpos, msrate) \
+        if (do_resample) { \
+          if (poolreadinst->m_resampler) poolreadinst->m_resampler->Reset(); \
+          if (do_resample == 2) { \
+            do_resample = 0; \
+            poolreadinst->m_resampler_state = 2; \
+            tpos=(INT64)floor(block->time_s * msrate + 0.5); \
+          } else { \
+            tpos=(INT64)floor(block->time_s * msrate); /* this should probably be +0.5, but a35f321 bleh */ \
+          } \
+        }
