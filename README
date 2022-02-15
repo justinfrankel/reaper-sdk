@@ -15,4 +15,4 @@ To compile most of this, merge or symlink in WDL:
 
 git remote add wdl https://github.com/justinfrankel/WDL.git
 git fetch --all
-git merge --allow-unrelated-histories wdl/master
+git merge --allow-unrelated-histories wdl/main
