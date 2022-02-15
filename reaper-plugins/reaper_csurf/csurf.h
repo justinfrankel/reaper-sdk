@@ -210,6 +210,7 @@ extern bool (*TrackFX_SetPreset)(MediaTrack* tr, int fx, const char* buf);
 
 extern double (*TrackFX_GetParamNormalized)(MediaTrack* track, int fx, int param);
 extern bool (*TrackFX_SetParamNormalized)(MediaTrack* track, int fx, int param, double value);
+extern int (*TrackFX_GetParamFromIdent)(MediaTrack *tr, int fx, const char *buf);
 
 extern int (*TrackFX_GetChainVisible)(MediaTrack*);
 extern HWND (*TrackFX_GetFloatingWindow)(MediaTrack*, int);

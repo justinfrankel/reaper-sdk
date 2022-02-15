@@ -214,6 +214,9 @@ class POOLED_PCMSOURCE_CLASSNAME : public PCM_source
             delete m_filepool->extraInfo->m_peakbuilder;
             m_filepool->extraInfo->m_peakbuilder=NULL;
 #endif
+#ifdef POOLEDSRC_POOLEDMEDIAINFO_HAS_CLOSE
+            m_filepool->extraInfo->Close();
+#endif
           }
         }
       }
@@ -403,6 +406,7 @@ class POOLED_PCMSOURCE_CLASSNAME : public PCM_source
 #endif
         return 1; 
       }
+      delete ni;
       return 0;
 
 #else

@@ -628,6 +628,7 @@ typedef struct
 #define PCM_SOURCE_EXT_ENUMTEMPOMAP 0x80002 // parm1=index, parm2=pointer to REAPER_tempochg, returns 0 if no tempo map or enumeration complete
 #define PCM_SOURCE_EXT_WANTOLDBEATSTYLE 0x80003
 #define PCM_SOURCE_EXT_GETNOTATIONSETTINGS 0x80004 // parm1=(int)what, (what==0) => parm2=(double*)keysigmap, parm3=(int*)keysigmapsize; (what==1) => parm2=(int*)display transpose semitones, (what==2) => parm2=(char*)clef1, parm3=(char*)clef2
+#define PCM_SOURCE_EXT_RELOADTRACKDATA 0x80005 // internal use
 #define PCM_SOURCE_EXT_WANT_TRIM 0x90001 // parm1=(int64*)total number of decoded samples after trimming, parm2=(int*)number of samples to trim from start, parm3=(int*)number of samples to trim from end
 #define PCM_SOURCE_EXT_WANTTRIM_DEPRECATED 0x90002 // no longer supported
 #define PCM_SOURCE_EXT_TRIMITEM 0x90003 // parm1=lrflag, parm2=double *{position,length,startoffs,rate}

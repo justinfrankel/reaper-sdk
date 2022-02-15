@@ -2458,18 +2458,14 @@ public:
           if (numwc) fxidx=wc[0]-1;
           if (numwc > 1) tidx=m_curbankstart+wc[1];
           tr=CSurf_TrackFromID(tidx, !!(m_followflag&8));
-          int numparms=0;
-          if (tr) numparms=TrackFX_GetNumParams(tr, fxidx);
-          parmidx=numparms-1;
+          parmidx=TrackFX_GetParamFromIdent(tr, fxidx, ":wet");
         }
         else if (fxeqwet)
         {
           if (numwc) tidx=m_curbankstart+wc[0];
           tr=CSurf_TrackFromID(tidx, !!(m_followflag&8));
           if (tr) fxidx=TrackFX_GetEQ(tr, !!(m_followflag&32));
-          int numparms=0;
-          if (tr) numparms=TrackFX_GetNumParams(tr, fxidx);
-          parmidx=numparms-1;
+          parmidx=TrackFX_GetParamFromIdent(tr, fxidx, ":wet");
         }
         else if (instparm)
         {
@@ -3486,7 +3482,7 @@ public:
 
       SETSURFSTRWC("FX_PARAM_NAME", wc, wcsz, buf);
       SetSurfaceVal("FX_PARAM_VALUE", wc, wcsz, 0, 0, &val, buf2);
-      if (parmidx == numparms-1)
+      if (parmidx == TrackFX_GetParamFromIdent(tr, curfx, ":wet"))
       {      
         SetSurfaceVal("FX_WETDRY", wc_lead, wc_lead_size, 0, 0, &val, buf2);
       }
@@ -4078,7 +4074,6 @@ public:
         double val=*(double*)parm3;
 
         int tidx=CSurf_TrackToID(tr, !!(m_followflag&8));
-        int numparms=-1;
 
         bool isinst=false;
         bool iseq=false;
@@ -4098,8 +4093,8 @@ public:
 
         if (tidx == m_curtrack)
         {
-          if (numparms<0) numparms=TrackFX_GetNumParams(tr, fxidx);
-          bool is_wet = (parmidx == numparms-1);
+          bool is_wet = (parmidx == TrackFX_GetParamFromIdent(tr, fxidx, ":wet"));
+
           if ((m_wantfx&1) && fxidx == m_curfx)
           {
             if (parmidx >= m_curfxparmbankstart && parmidx < m_curfxparmbankstart+m_fxparmbanksize)
@@ -4124,8 +4119,8 @@ public:
 
         if (tidx > m_curbankstart && tidx <= m_curbankstart+m_trackbanksize)
         {
-          if (numparms<0) numparms=TrackFX_GetNumParams(tr, fxidx);
-          bool is_wet = (parmidx == numparms-1);
+          bool is_wet = (parmidx == TrackFX_GetParamFromIdent(tr, fxidx, ":wet"));
+
           if ((m_wantfx&8))
           {
             if (parmidx >= m_curfxparmbankstart && parmidx < m_curfxparmbankstart+m_fxparmbanksize)
@@ -4198,8 +4193,7 @@ public:
 
           if (iscurfx || isbanktrackfx)
           {
-            if (numparms<0) numparms=TrackFX_GetNumParams(tr, fxidx);
-            bool iswet = (parmidx == numparms-1);
+            bool iswet = (parmidx == TrackFX_GetParamFromIdent(tr, fxidx, ":wet"));
 
             int wc[3] = { parmidx-m_curfxparmbankstart+1, fxidx+1, tidx-m_curbankstart };
             int k;

@@ -25,6 +25,8 @@ public:
     m_framefile=0; 
   }
 
+  bool has_file_open() const { return m_framefile != NULL; } // only signifies whether a file is open (file could be closed but index is valid)
+
   int GetFrameCount() 
   {
     return m_framefile||m_numframes==m_frameposmemcache.GetSize()?m_numframes:0; 

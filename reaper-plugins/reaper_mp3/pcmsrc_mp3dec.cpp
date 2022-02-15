@@ -264,6 +264,16 @@ public:
     return pdi;
   }
 
+#define POOLEDSRC_POOLEDMEDIAINFO_HAS_CLOSE
+  void Close()
+  {
+    if (m_index && m_index->has_file_open()) // do not release index if it was built to memory (regenerating would be slow)
+    {
+      mp3_index::release_index(m_index);
+      m_index=NULL;
+    }
+  }
+
   int m_srate,m_nch, m_channel_mode;
   INT64 m_lengthsamples;
   unsigned int m_stream_startpos, m_stream_endpos;
