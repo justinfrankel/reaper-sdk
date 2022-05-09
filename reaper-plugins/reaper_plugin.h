@@ -315,6 +315,8 @@ enum
 };
 // &0xFFFF0000 is for receiver use
 
+#ifdef __cplusplus
+
 #ifndef _WDL_PROJECTSTATECONTEXT_DEFINED_
 #define _REAPER_PLUGIN_PROJECTSTATECONTEXT_DEFINED_
 class ProjectStateContext // this is also defined in WDL, need to keep these interfaces identical
@@ -383,6 +385,8 @@ protected:
   virtual ~MIDI_eventlist() { }
 };
 
+#endif // __cplusplus
+
 typedef struct _MIDI_eventprops
 {
   double ppqpos;
@@ -419,6 +423,8 @@ typedef struct _PCM_source_transfer_t
   double absolute_time_s;
   double force_bpm;
 } PCM_source_transfer_t;
+
+#ifdef __cplusplus
 
 class REAPER_PeakGet_Interface;
 
@@ -481,7 +487,7 @@ typedef struct _PCM_source_peaktransfer_t
 
 
 // used to update MIDI sources with new events during recording
-typedef struct
+typedef struct _REAPER_midi_realtime_write_struct_t
 {
   double global_time;
   double global_item_time;
@@ -543,7 +549,7 @@ class PCM_source
     virtual int Extended(int call, void *parm1, void *parm2, void *parm3) { return 0; } // return 0 if unsupported
 };
 
-typedef struct
+typedef struct _REAPER_cue
 {
   int m_id; // ignored for PCM_SINK_EXT_ADDCUE, populated for PCM_SOURCE_EXT_ENUMCUES
   double m_time;
@@ -554,7 +560,7 @@ typedef struct
   char resvd[124]; // future expansion -- should be 0
 } REAPER_cue;
 
-typedef struct
+typedef struct _REAPER_slice
 {
   PCM_source* m_sliceSrc;
   double m_beatSnapOffset;
@@ -562,7 +568,7 @@ typedef struct
   char resvd[124];  // future expansion -- should be 0
 } REAPER_slice;
 
-typedef struct
+typedef struct _REAPER_inline_positioninfo
 {
   double draw_start_time; // project time at pixel start of draw
   int draw_start_y;       // if y-scroll is partway into the item, positive pixel value
@@ -577,7 +583,7 @@ typedef struct
 } REAPER_inline_positioninfo;
 
 
-typedef struct
+typedef struct _REAPER_tempochg
 {
   double timepos, qnpos, bpm;
   int tsnum, tsdenom;
@@ -707,7 +713,7 @@ enum { RAWMIDI_NOTESONLY=1, RAWMIDI_UNFILTERED=2 };
 #define PCM_SOURCE_EXT_GETLAPPING 0xC0100 // parm1 = ReaSample buffer, parm2=(INT_PTR)maxlap, returns size of lapping returned. usually not supported. special purpose.
 
 // register with Register("pcmsrc",&struct ... and unregister with "-pcmsrc"
-typedef struct {
+typedef struct _REAPER_pcmsrc_register_t {
   PCM_source *(*CreateFromType)(const char *type, int priority); // priority is 0-7, 0 is highest
   PCM_source *(*CreateFromFile)(const char *filename, int priority); // if priority is 5-7, and the file isn't found, open it in an offline state anyway, thanks
 
@@ -770,7 +776,7 @@ public:
 **** PCM sink API
 ***************************************************************************************/
 
-typedef struct
+typedef struct _REAPER_midi_quantize_mode_t
 {
   bool doquant;
   char movemode; // 0=default(l/r), -1=left only, 1=right only
@@ -819,7 +825,7 @@ class PCM_sink
 #define PCM_SINK_EXT_SETCURBLOCKTIME 0x80007 // parm1 = (double *) project position -- called before each WriteDoubles etc
 #define PCM_SINK_EXT_IS_VIDEO 0x80008
 
-typedef struct  // register using "pcmsink"
+typedef struct _REAPER_pcmsink_register_t // register using "pcmsink"
 {
   unsigned int (*GetFmt)(const char **desc);
 
@@ -829,7 +835,7 @@ typedef struct  // register using "pcmsink"
 
 } pcmsink_register_t;
 
-typedef struct  // register using "pcmsink_ext"
+typedef struct _REAPER_pcmsink_register_ext_t // register using "pcmsink_ext"
 {
   pcmsink_register_t sink; 
 
@@ -946,6 +952,9 @@ public:
 #define REAPER_PEAKRES_MUL_MAX 1.0 // recommended for plug-ins, when 1.5pix/peak, switch to hi res source. this may be configurable someday via some sneakiness
 
 
+#endif // __cplusplus
+
+
 
 /*
 ** accelerator_register_t allows you to register ("accelerator") a record which lets you get a place in the 
@@ -975,7 +984,7 @@ typedef struct accelerator_register_t
 ** for actions, the related callback should be registered with "hookcommand2"
 */
 
-typedef struct
+typedef struct _REAPER_custom_action_register_t
 {
   int uniqueSectionId; // 0/100=main/main alt, 32063=media explorer, 32060=midi editor, 32061=midi event list editor, 32062=midi inline editor, etc
   const char* idStr; // must be unique across all sections for actions, NULL for reascripts (automatically generated)
@@ -990,7 +999,7 @@ typedef struct
 ** key to bind. 
 */
 
-typedef struct 
+typedef struct _REAPER_gaccel_register_t
 {
   ACCEL accel; // key flags/etc represent default values (user may customize)
   const char *desc; // description (for user customizability)
@@ -1001,7 +1010,7 @@ typedef struct
 ** (a "help" plugin could register help text for Reaper built-in actions)
 */
 
-typedef struct
+typedef struct _REAPER_action_help_t
 {
   const char* action_desc;
   const char* action_help;
@@ -1052,7 +1061,7 @@ because these menus can be customized and item order can change.
 ** editor_register_t lets you integrate editors for "open in external editor" for files directly.
 */
 
-typedef struct // register with "editor"
+typedef struct _REAPER_editor_register_t // register with "editor"
 {
   int (*editFile)(const char *filename, HWND parent, int trackidx); // return TRUE if handled for this file
   const char *(*wouldHandle)(const char *filename); // return your editor's description string
@@ -1065,7 +1074,7 @@ typedef struct // register with "editor"
 ** 
 ** Implemented as a your-format->RPP converter, allowing you to generate directly to a ProjectStateContext
 */
-typedef struct // register with "projectimport"
+typedef struct _REAPER_project_import_register_t // register with "projectimport"
 {
   bool (*WantProjectFile)(const char *fn); // is this our file?
   const char *(*EnumFileExtensions)(int i, char **descptr); // call increasing i until returns NULL. if descptr's output is NULL, use last description
@@ -1135,13 +1144,13 @@ typedef struct audio_hook_register_t
 
 struct KbdAccel;
 
-typedef struct  
+typedef struct _REAPER_KbdCmd
 {
   DWORD cmd;  // action command ID
   const char *text; // description of action
 } KbdCmd;
 
-typedef struct
+typedef struct _REAPER_KbdKeyBindingInfo
 {
   int key;  // key identifier
   int cmd;  // action command ID
@@ -1150,7 +1159,7 @@ typedef struct
 
 
 
-typedef struct
+typedef struct _REAPER_KbdSectionInfo
 {
   int uniqueID; // 0=main, < 0x10000000 for cockos use only plzkthx
   const char *name; // section name
@@ -1179,7 +1188,7 @@ typedef struct
 
 
 
-typedef struct
+typedef struct _REAPER_preview_register_t
 {
 /*
 ** Note: you must initialize/deinitialize the cs/mutex (depending on OS) manually, and use it if accessing most parameters while the preview is active.
@@ -1284,6 +1293,7 @@ typedef LRESULT (*screensetNewCallbackFunc)(int action, const char *id, void *pa
 **
 */
 
+#ifdef __cplusplus
 
 class midi_Output
 {
@@ -1398,7 +1408,7 @@ class IReaperControlSurface
 #define CSURF_EXT_SUPPORTS_EXTENDED_TOUCH 0x00080001 // returns nonzero if GetTouchState can take isPan=2 for width, etc
 #define CSURF_EXT_MIDI_DEVICE_REMAP 0x00010099 // parm1 = isout, parm2 = old idx, parm3 = new idx
 
-typedef struct
+typedef struct _REAPER_reaper_csurf_reg_t
 {
   const char *type_string; // simple unique string with only A-Z, 0-9, no spaces or other chars
   const char *desc_string; // human readable description
@@ -1409,6 +1419,7 @@ typedef struct
 
 // note you can also add a control surface behind the scenes with "csurf_inst" (IReaperControlSurface*)instance
 
+#endif // __cplusplus
 
 
 #ifndef UNDO_STATE_ALL
