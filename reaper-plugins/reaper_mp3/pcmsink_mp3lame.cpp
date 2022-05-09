@@ -37,6 +37,7 @@ extern const char *(*get_ini_file)();
 extern const char *(*GetResourcePath)();
 extern const char *(*GetExePath)();
 extern const char *(*EnumCurrentSinkMetadata)(int cnt, const char **id);
+extern REAPER_Resample_Interface *(*Resampler_Create)();
 
 extern HWND g_main_hwnd;
 
@@ -93,7 +94,7 @@ static void FixSampleRate(int &sr)
   else if (sr <= 22050) sr=22050;
   else if (sr <= 24000) sr=24000;
   else if (sr <= 32000) sr=32000;
-  else if (sr <= 44100) sr=44100;
+  else if (sr <= 44100 || sr == 88200 || sr == 176400 || sr == 352800) sr=44100;
   else sr=48000;
 }
 
@@ -131,7 +132,21 @@ class PCM_sink_mp3lame : public PCM_sink
         if (m_quality >= 10) m_quality=0;
         else if (m_quality<0) m_quality=2;
 
+        m_resampler_srate_in=0;
+        m_resampler=NULL;
+
+        int srate_in=srate;
         FixSampleRate(srate);
+        if (srate != srate_in)
+        {
+          m_resampler_srate_in=srate_in;
+          m_resampler=Resampler_Create();
+          if (WDL_NORMALLY(m_resampler))
+          {
+            m_resampler->SetRates(m_resampler_srate_in, srate);
+            m_resampler->Extended(RESAMPLE_EXT_SETFEEDMODE, (void*)(INT_PTR)1, 0, 0);
+          }
+        }
 
         m_nch=nch>1?2:1;
         const int rpgain = (m_stereomode&STEREO_REPLAY_GAIN_MASK) == ENABLE_REPLAY_GAIN;
@@ -192,21 +207,41 @@ class PCM_sink_mp3lame : public PCM_sink
     {
       if (IsOpen())
       {
+        if (m_resampler)
+        {
+          const double lat=m_resampler->GetCurrentLatency();
+          int len=(int) (lat*m_srate);
+
+          // we are in input-fed mode
+          ReaSample *in=NULL;
+          len = m_resampler->ResamplePrepare(len, m_nch, &in);
+
+          ReaSample *out=m_resampler_buf.ResizeOK(len*m_nch);
+          len = WDL_NORMALLY(out) ? m_resampler->ResampleOut(out, 0, len, m_nch) : 0;
+
+          if (len > 0)
+          {
+            if (m_peakbuild)
+            {
+              ReaSample *chptrs[REAPER_MAX_CHANNELS];
+              for (int c=0; c < m_nch; ++c) chptrs[c]=out+c;
+              m_peakbuild->ProcessSamples(chptrs, len, m_nch, 0, m_nch);
+            }
+
+            float *spls=m_inbuf.Resize(len*m_nch);
+            for (int i=0; i < len*m_nch; ++i) spls[i]=out[i];
+            m_lensamples += len;
+            m_enc->Encode(spls, len, 1);
+            FlushOut();
+          }
+        }
         m_enc->Encode(NULL,0,1);
-
         FlushOut();
-        // flush output
-
       }
-
       delete m_fh;
-      m_fh=0;
-
       delete m_enc; // be sure to delete m_enc AFTER m_fh, to ensure it can write the vbr tag etc
-      m_enc=0;
-
       delete m_peakbuild;
-      m_peakbuild=0;
+      delete m_resampler;
     }
 
     const char *GetFileName() { return m_fn.Get(); }
@@ -233,36 +268,55 @@ class PCM_sink_mp3lame : public PCM_sink
     void WriteMIDI(MIDI_eventlist *events, int len, double samplerate) { }
     void WriteDoubles(ReaSample **samples, int len, int nch, int offset, int spacing)
     {
-      if (m_peakbuild)
-        m_peakbuild->ProcessSamples(samples,len,nch,offset,spacing);
+      ReaSample *tmpptrs[2];
+      tmpptrs[0] = samples[0]+offset;
+      tmpptrs[1] = nch > 1 ? samples[1]+offset : samples[0]+offset;
 
-      ReaSample *tmpptrs[2]={samples[0]+offset,samples[0]+offset};     
-      if (nch > 1) tmpptrs[1]=samples[1]+offset;
+      if (m_resampler)
+      {
+        ReaSample *resamplebuf=NULL;
+        // we are in input-fed mode
+        int n=m_resampler->ResamplePrepare(len, m_nch, &resamplebuf);
+        WDL_ASSERT(n == len);
+        for (int c=0; c < m_nch; ++c)
+        {
+          ReaSample *in=tmpptrs[c];
+          ReaSample *out=resamplebuf+c;
+          for (int i=0; i < n; ++i)
+          {
+            *out=*in;
+            out += m_nch;
+            in += spacing;
+          }
+        }
+
+        int max_out=(int) (n*(double)m_srate/m_resampler_srate_in);
+        ReaSample *outbuf=m_resampler_buf.ResizeOK(max_out*m_nch);
+        len=WDL_NORMALLY(outbuf) ? m_resampler->ResampleOut(outbuf, n, max_out, m_nch) : 0;
+
+        spacing=m_nch;
+        tmpptrs[0] = outbuf;
+        tmpptrs[1] = m_nch > 1 ? outbuf+1 : outbuf;
+      }
+
+      if (m_peakbuild) m_peakbuild->ProcessSamples(tmpptrs, len, m_nch, 0, spacing);
 
       float *tmpbuf=m_inbuf.Resize(len*m_nch,false);
-      float *p=tmpbuf;
-      int splsout=0;
-      while (len-->0)
-      {          
-        int ch;
-        for (ch = 0; ch < m_nch; ch ++)
+      for (int c=0; c < m_nch; ++c)
+      {
+        ReaSample *in=tmpptrs[c];
+        float *out=tmpbuf+c;
+        for (int i=0; i < len; ++i)
         {
-          ReaSample v=tmpptrs[ch][0];
-          //if (v <= -1.0) *p++=-1.0f;
-          //else if (v >= 1.0) *p++=1.0f;
-          //else 
-          *p++=(float)v;
-          tmpptrs[ch]+=spacing;
-          splsout++;
+          *out=*in;
+          out += m_nch;
+          in += spacing;
         }
       }
-      if (splsout)
-      {
-        m_lensamples+=splsout/m_nch;
-        m_enc->Encode(tmpbuf,splsout/m_nch,1);
 
-        FlushOut();
-      }
+      m_lensamples += len;
+      m_enc->Encode(tmpbuf, len, 1);
+      FlushOut();
     }
 
     void FlushOut()
@@ -307,13 +361,6 @@ class PCM_sink_mp3lame : public PCM_sink
         {
           if (*(int *)parm2 <= 1) *(int *)parm2=1;
           else *(int *)parm2 = 2;
-
-          int sr=*(int *)parm1;
-
-          FixSampleRate(sr);
-
-          *(int *)parm1 = sr;
-
           return 1;
         }
       }
@@ -333,6 +380,10 @@ class PCM_sink_mp3lame : public PCM_sink
     WDL_String m_fn;
     LameEncoder *m_enc;
     REAPER_PeakBuild_Interface *m_peakbuild;
+
+    int m_resampler_srate_in;
+    REAPER_Resample_Interface *m_resampler;
+    WDL_TypedBuf<ReaSample> m_resampler_buf;
 };
 
 static unsigned int GetFmt(const char **desc) 

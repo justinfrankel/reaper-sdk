@@ -173,7 +173,17 @@ typedef struct reaper_plugin_info_t
     defstring is four null-separated fields: return type, argument types, argument names, and help.
 
   APIvararg_*:
-    Used to set the reascript vararg function pointer for an API_. todo document
+    Used to set the reascript vararg function pointer for an API_:
+       (void *) (void * (*faddr_vararg)(void **arglist, int numparms))
+
+      numparms will typically be the full requested parameter count (including NULL pointers for any
+      unspecified optional parameters)
+
+      arguments and return values:
+        integer as (void *)(INT_PTR) intval
+        double as (void *)&some_double_in_memory
+        pointers directly as pointers (can be NULL, especially if Optional)
+
 
   hookcommand:
     Registers a hook which runs prior to every action in the main section:
@@ -238,6 +248,31 @@ typedef struct reaper_plugin_info_t
 
 
   file_in_project_ex:
+     void *p[2] = {(void *)fn, projptr };
+     plugin_register("file_in_project_ex",p);
+     plugin_register("-file_in_project_ex",p);
+
+     fn does not need to persist past the call of the function (it is copied)
+     projptr must be a valid ReaProject (the default NULL=g_project semantics do not apply).
+     file references are reference counted so you can add twice/remove twice etc.
+
+  file_in_project_ex2:
+     Extended syntax to receive rename notifications, or to have your plug-in request that the file go in a subdirectory:
+
+     INT_PTR fileInProjectCallback(void *_userdata, int msg, void *parm) {
+       if (msg == 0 && parm)
+       {
+          // rename notification, parm is (const char *)new filename
+       }
+       if (msg == 0x100) return (INT_PTR)"samples"; // subdirectory name, if desired (return 0 if not desired)
+       return 0;
+     }
+
+     void *p[4] = {(void *)fn, projptr, userdatacontext, fileInProjectCallback };
+     plugin_register("file_in_project_ex2",p);
+     plugin_register("-file_in_project_ex2",p);
+
+
   accel_section:
   action_help:
   custom_action:

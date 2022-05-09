@@ -3822,27 +3822,28 @@ public:
           const char* panmode="";    
           char panstr2[256];
           panstr2[0]=0;
-          double tpan2=0.5;
-          if (mode == PAN_MODE_CLASSIC)
-          {
-            panmode="Balance (classic)";
-          }
-          else if (mode == PAN_MODE_NEW_BALANCE)
-          {
-            panmode="Balance";
-          }
-          else if (mode == PAN_MODE_STEREO_PAN)
-          {
-            panmode="Stereo pan";
-            snprintf(panstr2, sizeof(panstr2),"%.0fW", 100.0*pan[1]);
-            tpan2=0.5*(pan[1]+1.0);
-          }
-          else if (mode == PAN_MODE_DUAL_PAN)
+          double tpan2=0.5*(pan[1]+1.0);
+          if (mode == PAN_MODE_DUAL_PAN)
           {
             panmode="Dual pan";    
             mkpanstr(panstr2, pan[1]);
             if (!strcmp(panstr2, "center")) strcpy(panstr2, "C");
-            tpan2=0.5*(pan[1]+1.0);
+          }
+          else
+          {
+            snprintf(panstr2, sizeof(panstr2),"%.0fW", 100.0*pan[1]);
+            if (mode == PAN_MODE_CLASSIC)
+            {
+              panmode="Balance (classic)";
+            }
+            else if (mode == PAN_MODE_NEW_BALANCE)
+            {
+              panmode="Balance";
+            }
+            else if (mode == PAN_MODE_STEREO_PAN)
+            {
+              panmode="Stereo pan";
+            }
           }
         
           SETSURFTRACKSTR("TRACK_PAN_MODE", tidx, panmode);
