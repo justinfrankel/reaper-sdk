@@ -245,6 +245,9 @@ typedef struct reaper_plugin_info_t
        0 = query if hwnd should be treated as a text-field for purposes of global hotkeys
            return: 1 if text field
            return: -1 if not text field
+       1 = query if global hotkeys should be processed for this context  (6.60+)
+           return 1 if global hotkey should be skipped (and default accelerator processing used instead)
+           return -1 if global hotkey should be forced
 
 
   file_in_project_ex:
@@ -823,7 +826,7 @@ class PCM_sink
 #define PCM_SINK_EXT_GETBITDEPTH 0x80005 // parm1 = (int*) bitdepth (return 1 if supported)
 #define PCM_SINK_EXT_ADDCUE 0x80006 // parm1=(PCM_cue*)cue OR parm2=(double*)transient position
 #define PCM_SINK_EXT_SETCURBLOCKTIME 0x80007 // parm1 = (double *) project position -- called before each WriteDoubles etc
-#define PCM_SINK_EXT_IS_VIDEO 0x80008
+#define PCM_SINK_EXT_IS_VIDEO 0x80008 // deprecated/unused
 
 typedef struct _REAPER_pcmsink_register_t // register using "pcmsink"
 {
@@ -850,6 +853,7 @@ typedef struct _REAPER_pcmsink_register_ext_t // register using "pcmsink_ext"
 #define PCMSINKEXT_GETFORMATDESC 0x80000 // parm1=(void*)cfg, parm2=(int)cfglen, parm3=(const char*)retstring 
 #define PCMSINKEXT_GETFORMATDATARATE 0x80001 // parm1=(void*)cfg, parm2=(int)cfglen, parm3 = int[] {channels, samplerate}
 #define PCMSINKEXT_GETFORMATBITDEPTH 0x80002 // parm1=(void*)cfg, parm2=(int)cfglen, returns bit depth if supported (negative with effective size if FP)
+#define PCMSINKEXT_GETFORMATSTREAMDESC 0x80003 // parm1=(void*)cfg, parm2=(int)cfglen, parm3=(int*)streams (&1=has video, &2=has audio), returns 1 if supported
 
 /***************************************************************************************
 **** Resampler API (plug-ins can use this for SRC)

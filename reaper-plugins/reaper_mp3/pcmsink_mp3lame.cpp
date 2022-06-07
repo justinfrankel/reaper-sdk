@@ -41,8 +41,10 @@ extern REAPER_Resample_Interface *(*Resampler_Create)();
 
 extern HWND g_main_hwnd;
 
+struct ID3RawTag;
 int PackID3Chunk(WDL_HeapBuf *hb, WDL_StringKeyedArray<char*> *metadata,
-  bool want_embed_otherschemes, int *ixml_lenwritten, int ixml_padtolen);
+  bool want_embed_otherschemes, int *ixml_lenwritten, int ixml_padtolen,
+  WDL_PtrList<ID3RawTag> *rawtags=NULL);
 int ArrayToMetadata(const char **metadata_arr, WDL_StringKeyedArray<char*> *metadata);
 
 
@@ -290,7 +292,7 @@ class PCM_sink_mp3lame : public PCM_sink
           }
         }
 
-        int max_out=(int) (n*(double)m_srate/m_resampler_srate_in);
+        int max_out=(int)ceil(n*(double)m_srate/(double)m_resampler_srate_in);
         ReaSample *outbuf=m_resampler_buf.ResizeOK(max_out*m_nch);
         len=WDL_NORMALLY(outbuf) ? m_resampler->ResampleOut(outbuf, n, max_out, m_nch) : 0;
 

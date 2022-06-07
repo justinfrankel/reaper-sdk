@@ -60,7 +60,8 @@ void (*__mergesort)(void *base, size_t nmemb, size_t size, int (*compar)(const v
 #include "../metadata.h"
 
 int PackID3Chunk(WDL_HeapBuf *hb, WDL_StringKeyedArray<char*> *metadata,
-  bool want_embed_otherschemes, int *ixml_lenwritten, int ixml_padtolen);
+  bool want_embed_otherschemes, int *ixml_lenwritten, int ixml_padtolen,
+  WDL_PtrList<ID3RawTag> *rawtags=NULL);
 int PackApeChunk(WDL_HeapBuf *hb, WDL_StringKeyedArray<char*> *metadata);
 
 struct ID3Cue
@@ -336,21 +337,47 @@ int POOLED_PCMSOURCE_CLASSNAME::PoolExtended(int call, void* parm1, void* parm2,
     unsigned int spos=m_filepool->extraInfo->m_stream_startpos;
     unsigned int epos=m_filepool->extraInfo->m_stream_endpos;
 
+    // preserve existing ID3 tags that we don't handle
+    WDL_PtrList<ID3RawTag> rawtags;
+    if (merge && ok)
+    {
+      if (ReadID3Raw(fr, &rawtags) != spos) rawtags.Empty(true);
+      if (rawtags.GetSize())
+      {
+        // delete any rawtags that represent data that *could* be added from the media explorer
+        WDL_PtrList<const char> del_mexkeys;
+        int i=0;
+        const char *mexkey;
+        while ((mexkey=EnumMexKeys(i++))) del_mexkeys.Add(mexkey);
+
+        // also delete custom ID3:TXXX fields the caller wants to remove
+        // these empty-value entries were passed in but not added to metadata
+        for (const char **arr=metadata_arr; arr[0] && arr[1]; arr += 2)
+        {
+          if (arr[0] && arr[0][0] && (!arr[1] || !arr[1][0])) del_mexkeys.Add(arr[0]);
+        }
+
+        for (int i=0; i < del_mexkeys.GetSize(); ++i)
+        {
+          const char *mexkey=del_mexkeys.Get(i);
+          int idx=0;
+          char tkey[256];
+          while (EnumMetadataKeyFromMexKey(mexkey, idx++, tkey, sizeof(tkey)) && tkey[0])
+          {
+            if (!strncmp(tkey, "ID3:", 4)) DeleteID3Raw(&rawtags, tkey);
+          }
+        }
+
+        // media explorer can also add embedded ixml and xmp
+        DeleteID3Raw(&rawtags, "ID3:PRIV:iXML");
+        DeleteID3Raw(&rawtags, "ID3:PRIV:XMP");
+      }
+    }
+
     WDL_HeapBuf hb;
-    if (merge)
-    {
-      // preserve existing ID3 tags that we don't handle
-      WDL_PtrList<ID3RawTag> rawtags;
-      if (ok) ok = ReadID3Raw(fr, &rawtags) == spos;
-      AddMexID3Raw(&metadata, &rawtags);
-      if (ok) WriteID3Raw(fw, &rawtags);
-    }
-    else
-    {
-      int id3len=PackID3Chunk(&hb, &metadata, true, NULL, 0);
-      if (id3len && ok) ok = fw->Write(hb.Get(), id3len) == id3len;
-      hb.Resize(0, false);
-    }
+    int id3len=PackID3Chunk(&hb, &metadata, true, NULL, 0, rawtags.GetSize() ? &rawtags : NULL);
+    if (id3len && ok) ok = fw->Write(hb.Get(), id3len) == id3len;
+    hb.Resize(0, false);
 
     if (ok) ok = !fr->SetPosition(spos) && CopyFileData(fr, fw, epos-spos);
 
