@@ -532,7 +532,7 @@ static void ProcessCommand(WDL_FastString *o, const char *in, int inlen)
     double v=p?flexi_atof(p) : 0.0;
     float v2=(float)v;
     OscLocalMessageToHost(want,p?&v:NULL); // csurf processing
-    CSurf_OnOscControlMessage(want,p?&v2:NULL); // learn bindings
+    CSurf_OnOscControlMessage2(want,p?&v2:NULL,p && *p == 's' ? (p+1) : NULL); // learn bindings
   }
   else if (!strcmp(want,"MARKER") || !strcmp(want,"REGION"))
   {

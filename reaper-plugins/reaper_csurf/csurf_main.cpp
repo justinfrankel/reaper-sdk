@@ -112,7 +112,7 @@ double (*CSurf_OnRecvPanChange)(MediaTrack* trackid, int recvidx, double pan, bo
 void (*CSurf_OnPlayRateChange)(double playrate);
 void (*CSurf_OnTempoChange)(double bpm);
 
-void (*CSurf_OnOscControlMessage)(const char* msg, const float* arg);
+void (*CSurf_OnOscControlMessage2)(const char* msg, const float* arg, const char *arg_str);
 
 double (*Master_GetPlayRate)(ReaProject*);
 double (*Master_NormalizePlayRate)(double playrate, bool isnormalized);
@@ -361,7 +361,7 @@ REAPER_PLUGIN_DLL_EXPORT int REAPER_PLUGIN_ENTRYPOINT(REAPER_PLUGIN_HINSTANCE hI
   IMPAPI(CSurf_OnRecvPanChange)
   IMPAPI(CSurf_OnPlayRateChange)
   IMPAPI(CSurf_OnTempoChange)
-  IMPAPI(CSurf_OnOscControlMessage)
+  IMPAPI(CSurf_OnOscControlMessage2)
 
   IMPAPI(Master_GetPlayRate)
   IMPAPI(Master_NormalizePlayRate)

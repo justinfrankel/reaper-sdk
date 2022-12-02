@@ -294,7 +294,9 @@ bool ParseID3v1(const char *buf, WDL_StringKeyedArray<char*> *metadata, bool fas
 }
 
 // the input buffer can be mangled (when unsynchronisation is used)
-bool ParseID3v2(char *buf, int tag_size, WDL_StringKeyedArray<char*> *metadata, bool fast) // fast: only parse common tags (parsing en masse)
+bool ParseID3v2(char *buf, int tag_size,
+  WDL_StringKeyedArray<char*> *metadata, bool fast, // fast: only parse common tags (parsing en masse)
+  WDL_INT64 chunk_start_pos)
 {
   bool has_tag=false;
 
@@ -431,28 +433,42 @@ bool ParseID3v2(char *buf, int tag_size, WDL_StringKeyedArray<char*> *metadata, 
 
       if (buf[3]==2)
       {
-        frame_data.Set(p+skip_bytes, 3);
+        frame_data.Set("ext:");
+        frame_data.Append(p+skip_bytes, 3);
         skip_bytes+=3;
       }
       else
       {
+        frame_data.Set("mime:");
         skip_bytes += ID3v2StringToUTF8(0, p+skip_bytes, frame_sz-skip_bytes, &frame_data);
+        skip_bytes -= strlen("mime:"); // this might be a bug in ID3v2StringToUTF8()
       }
       if (skip_bytes<frame_sz)
       {
         if (buf[3]!=2) skip_bytes++;
-        skip_bytes++; // skip pic type
+        int pictype=p[skip_bytes++];
+        WDL_INT64 dataoffs=0;
 
         shortdesc.Set("");
         skip_bytes += ID3v2StringToUTF8(p[0], p+skip_bytes, frame_sz-skip_bytes, &shortdesc);
         if (skip_bytes<frame_sz) // null terminator found
         {
           skip_bytes += ((p[0]==1 || p[0]==2) ? 2 : 1);
+          dataoffs=chunk_start_pos+(WDL_INT64)(p-buf+skip_bytes);
+
           if (shortdesc.GetLength())
           {
-            frameid.Append(":");
-            frameid.Append(shortdesc.Get());
+            if (frame_data.GetLength()) frame_data.Append(" ");
+            frame_data.Append("desc:");
+            frame_data.Append(shortdesc.Get());
           }
+        }
+
+        if (pictype >= 0 && pictype < 128 && dataoffs > 0 && skip_bytes < frame_sz)
+        {
+          if (frame_data.GetLength()) frame_data.Append(" ");
+          frame_data.AppendFormatted(512, "type:%d offset:%llu length:%d",
+            pictype, dataoffs, frame_sz-skip_bytes);
         }
       }
     }
@@ -584,7 +600,7 @@ int ReadMediaTags(WDL_FileRead *fr, WDL_StringKeyedArray<char*> *metadata,
       {
         buf=(unsigned char*)hb.Resize(10+taglen, false);
         fr->Read(buf+10, taglen);
-        ParseID3v2((char*)buf, taglen, metadata, false);
+        ParseID3v2((char*)buf, taglen, metadata, false, 0);
       }
       has_id3v2=true;
       fstart += taglen+10;

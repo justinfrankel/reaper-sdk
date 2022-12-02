@@ -130,10 +130,14 @@ REAPER_STATICFUNC void REAPER_BSWAPINTMEM8(void *buf)
 #endif
 
 
-
+//  REAPER extensions must support this entry function:
 //  int ReaperPluginEntry(HINSTANCE hInstance, reaper_plugin_info_t *rec);
 //  return 1 if you are compatible (anything else will result in plugin being unloaded)
 //  if rec == NULL, then time to unload 
+//
+//  CLAP plugins can access the REAPER API via:
+//  const void *clap_host.get_extension(const clap_host *host, "cockos.reaper_extension");
+//  which returns a pointer to a reaper_plugin_info_t struct
 
 #define REAPER_PLUGIN_VERSION 0x20E
 
@@ -559,7 +563,7 @@ typedef struct _REAPER_cue
   double m_endtime;
   bool m_isregion;
   char *m_name; // can be NULL if unnamed
-  int m_flags; // &1=DEPRECATED caller must call Extended(PCM_SOURCE_EXT_ENUMCUES, -1, &cue, 0) when finished, &2=time is QN, &0x10000=write cue regardless of sink settings, &4=is chapter
+  int m_flags; // &1:DEPRECATED caller must call Extended(PCM_SOURCE_EXT_ENUMCUES, -1, &cue, 0) when finished, &2:time is QN, &0x10000:write cue regardless of sink settings, &4:is chapter, &(8|16)=8:has low confidence cue name, &(8|16)=16:has medium confidence cue name, &(8|16)=24:has high confidence cue name
   char resvd[124]; // future expansion -- should be 0
 } REAPER_cue;
 

@@ -112,7 +112,7 @@ extern void (*CSurf_OnTempoChange)(double bpm);
 
 // when the user enables an osc surface for the kbd/control system,
 // this func is called when a message is received from that surface
-extern void (*CSurf_OnOscControlMessage)(const char* msg, const float* arg);
+extern void (*CSurf_OnOscControlMessage2)(const char* msg, const float* arg, const char *arg_str);
 
 extern double (*Master_GetPlayRate)(ReaProject*);
 extern double (*Master_NormalizePlayRate)(double playrate, bool isnormalized);
@@ -273,7 +273,6 @@ extern int (*AddProjectMarker2)(ReaProject* __proj, bool isrgn, double pos, doub
 
 extern MediaTrack *(*GetTrack)(ReaProject *proj, int tridx);
 extern bool (*GetTrackMIDILyrics)(MediaTrack *tr, int flag, char *buf, int *buflen);
-extern void (*CSurf_OnOscControlMessage)(const char* msg, const float* arg);
 
 void OscLocalMessageToHost(const char* msg, const double* value);
 

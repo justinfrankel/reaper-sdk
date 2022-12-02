@@ -300,7 +300,10 @@ class POOLED_PCMSOURCE_CLASSNAME : public PCM_source
           if (m_filepool->extraInfo->m_hiressrc)
           {
             m_filepool->extraInfo->m_hiressrc_lastused = GetTickCount();
-            if (HiresPeaksFromSource) HiresPeaksFromSource(m_filepool->extraInfo->m_hiressrc,block);
+#ifndef POOLED_PCMSOURCE_NOCHECKFUNCTIONPOINTERS
+            if (HiresPeaksFromSource)
+#endif
+            HiresPeaksFromSource(m_filepool->extraInfo->m_hiressrc,block);
             if (block->peaks_out)
             {
               RESTORE_BLOCK_TIMEINFO;
@@ -339,7 +342,10 @@ class POOLED_PCMSOURCE_CLASSNAME : public PCM_source
         {
           m_filepool->extraInfo->m_hiressrc_lastused = GetTickCount();
           block->__peakgetter = pg;
-          if (HiresPeaksFromSource) HiresPeaksFromSource(m_filepool->extraInfo->m_hiressrc,block);
+#ifndef POOLED_PCMSOURCE_NOCHECKFUNCTIONPOINTERS
+          if (HiresPeaksFromSource)
+#endif
+          HiresPeaksFromSource(m_filepool->extraInfo->m_hiressrc,block);
           block->__peakgetter = NULL;
           if (block->peaks_out)
           {
@@ -364,7 +370,11 @@ class POOLED_PCMSOURCE_CLASSNAME : public PCM_source
         m_filepool->extraInfo->m_peakbuilder=0;
       }
 
-      if (deleteFile && GetPeakFileName && m_filename_ent)
+      if (deleteFile &&
+#ifndef POOLED_PCMSOURCE_NOCHECKFUNCTIONPOINTERS
+        GetPeakFileName &&
+#endif
+        m_filename_ent)
       {
         char fn[2048],lfn[2048];
         lfn[0]=0;

@@ -25,7 +25,7 @@ static bool s_threadquit=false;
 #define OSC_DEBUG_OUTPUT 0
 
 
-extern void (*CSurf_OnOscControlMessage)(const char*, const float*);
+extern void (*CSurf_OnOscControlMessage2)(const char*, const float*, const char *arg_str);
 
 static unsigned WINAPI OscThreadProc(LPVOID p)
 {
@@ -374,11 +374,12 @@ int OscGetInput(OscHandler* osc)
 
       const char* msg=rmsg.GetMessage();
       const float* f=rmsg.PopFloatArg(true);
+      const char* sarg=rmsg.PopStringArg(true);
 
       osc->m_handler(osc->m_obj, &rmsg);
       if (osc->m_recv_enable&2)
       {
-        CSurf_OnOscControlMessage(msg, f);
+        CSurf_OnOscControlMessage2(msg, f, sarg);
       }
 
       ++msgcnt;

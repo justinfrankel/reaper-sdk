@@ -36,10 +36,11 @@ BEGIN
     LTEXT           "File info:",IDC_STATIC,7,38,27,8
     EDITTEXT        IDC_INFO,7,48,208,111,ES_MULTILINE | ES_AUTOVSCROLL |
                     ES_AUTOHSCROLL | WS_VSCROLL | WS_HSCROLL | ES_READONLY
-    DEFPUSHBUTTON   "Close",IDOK,85,175,50,14
     CONTROL         "Correct compressor latency/length (recommended)",
                     IDC_CHECK1,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,161,
                     175,10
+    PUSHBUTTON      "Image",IDC_BUTTON1,50,175,50,14
+    DEFPUSHBUTTON   "Close",IDOK,122,175,50,14
 END
 
 IDD_MP3SINK_CFG DIALOG DISCARDABLE  0, 0, 288, 52

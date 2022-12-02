@@ -6,6 +6,7 @@
 #define IDD_MP3SINK_CFG                 155
 #define IDC_BITRATE                     1003
 #define IDC_QUALITY                     1006
+#define IDC_BUTTON1                     1012
 #define IDC_CHECK1                      1013
 #define IDC_MODE                        1014
 #define IDC_QUALITY_LBL                 1017

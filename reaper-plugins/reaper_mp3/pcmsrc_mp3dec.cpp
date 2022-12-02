@@ -50,6 +50,7 @@ void (*GetPreferredDiskReadModePeak)(int *mode, int *nb, int *bs);
 void (*HiresPeaksFromSource)(PCM_source *src, PCM_source_peaktransfer_t *block);
 const char *(*EnumCurrentSinkMetadata)(int cnt, const char **id);
 void (*__mergesort)(void *base, size_t nmemb, size_t size, int (*compar)(const void *, const void *), void *tmpspace);
+void (*OpenImageModal)(HWND hwnd, const char *imgfn, const char *imgdesc);
 
 #define SOURCE_TYPE "MP3"
 
@@ -68,7 +69,7 @@ struct ID3Cue
 {
   double pos, endpos;
   int type; // &1=region, &2=chapter
-  const char *name; // we don't own this
+  char *name; // we own this
 };
 
 static int _cuecmp(const void *_a, const void *_b)
@@ -141,6 +142,12 @@ public:
     {
       mp3_index::release_index(m_index);
       m_index=0;
+    }
+
+    for (int i=0; i < m_cues.GetSize(); ++i)
+    {
+      ID3Cue *cue=m_cues.Get()+i;
+      free(cue->name);
     }
   }
   int GetNumChannels() { return m_nch; } // return number of channels
@@ -419,7 +426,7 @@ int POOLED_PCMSOURCE_CLASSNAME::PoolExtended(int call, void* parm1, void* parm2,
           {
             ID3Cue id3_cue={0};
             id3_cue.pos=(double)ms*0.001;
-            id3_cue.name=ID3_ETCO_TYPE[type];
+            id3_cue.name=strdup(ID3_ETCO_TYPE[type]);
             m_filepool->extraInfo->m_cues.Add(id3_cue);
           }
         }
@@ -441,7 +448,7 @@ int POOLED_PCMSOURCE_CLASSNAME::PoolExtended(int call, void* parm1, void* parm2,
             id3_cue.type |= 2;
             id3_cue.pos=(double)startms*0.001;
             if (endms > startms) id3_cue.endpos=(double)endms*0.001;
-            id3_cue.name = sep2 ? (char*)sep2+1 : (char*)"";
+            id3_cue.name = strdup(sep2 ? (char*)sep2+1 : (char*)"");
             m_filepool->extraInfo->m_cues.Add(id3_cue);
           }
         }
@@ -782,12 +789,32 @@ WDL_DLGRET PCM_source_mp3::propsDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, 
       WDL_FastString s;
       GetPropsStr(s);
       SetDlgItemText(hwndDlg,IDC_INFO,s.Get());
+
+      bool has_img = m_filepool && m_filepool->extraInfo &&
+        m_filepool->extraInfo->m_metadata.Exists("ID3:APIC");
+      EnableWindow(GetDlgItem(hwndDlg, IDC_BUTTON1), has_img);
     }
     return 0;
 
     case WM_COMMAND:
       switch (LOWORD(wParam))
       {
+        case IDC_BUTTON1:
+          if (m_filepool && m_filepool->extraInfo)
+          {
+            const char *infostr=m_filepool->extraInfo->m_metadata.Get("ID3:APIC");
+            if (infostr)
+            {
+              WDL_FastString imgfn, imgdesc;
+              if (ExportMetadataImageToTmpFile(GetFileName(), infostr, &imgdesc, NULL, &imgfn))
+              {
+                if (OpenImageModal) OpenImageModal(hwndDlg,imgfn.Get(), imgdesc.Get());
+                DeleteFile(imgfn.Get());
+              }
+            }
+          }
+        return 0;
+
         case IDOK:
         case IDCANCEL:
           m_adjustLatency = !!IsDlgButtonChecked(hwndDlg,IDC_CHECK1);
@@ -1073,6 +1100,7 @@ REAPER_PLUGIN_DLL_EXPORT int REAPER_PLUGIN_ENTRYPOINT(REAPER_PLUGIN_HINSTANCE hI
     *((void **)&GetPreferredDiskReadMode) = rec->GetFunc("GetPreferredDiskReadMode");
     *((void **)&GetPreferredDiskReadModePeak) = rec->GetFunc("GetPreferredDiskReadModePeak");
     *((void **)&HiresPeaksFromSource) = rec->GetFunc("HiresPeaksFromSource");
+    *((void**)&OpenImageModal) = rec->GetFunc("OpenImageModal");
 
     *(void **)&gOnMallocFailPtr = rec->GetFunc("gOnMallocFail");
 
