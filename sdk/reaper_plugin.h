@@ -718,6 +718,7 @@ enum { RAWMIDI_NOTESONLY=1, RAWMIDI_UNFILTERED=2 };
 #define PCM_SOURCE_EXT_GETSETALLMIDI 0x90029 // parm1=(unsigned char*)data buffer, parm2=(int*)buffer length in bytes, parm2=(1:set, 0:get). Buffer is a list of { int offset, char flag, int msglen, unsigned char msg[] }. offset: MIDI ticks from previous event, flag: &1=selected &2=muted, msglen: byte length of msg (usually 3), msg: the MIDI message.
 #define PCM_SOURCE_EXT_DISABLESORTMIDIEVTS 0x90030 // disable sorting for PCM_SOURCE_EXT_GETSETMIDIEVT until PCM_SOURCE_EXT_SORTMIDIEVTS is called
 #define PCM_SOURCE_EXT_GETLAPPING 0xC0100 // parm1 = ReaSample buffer, parm2=(INT_PTR)maxlap, returns size of lapping returned. usually not supported. special purpose.
+#define PCM_SOURCE_EXT_SET_PREVIEW_POS_OVERRIDE 0xC0101 // parm1 = (double *)&tickpos, tickpos<0 for no override
 
 // register with Register("pcmsrc",&struct ... and unregister with "-pcmsrc"
 typedef struct _REAPER_pcmsrc_register_t {
@@ -917,6 +918,8 @@ class IReaperPitchShift
     virtual int Extended(int call, void *parm1, void *parm2, void *parm3) { return 0; } // return 0 if unsupported
 };
 #define REAPER_PITCHSHIFT_EXT_GETMINMAXPRODUCTS 0x1
+#define REAPER_PITCHSHIFT_EXT_SET_OUTPUT_BPM 0x200 // parm1 = *(double *)bpm
+#define REAPER_PITCHSHIFT_EXT_WANT_OUTPUT_BPM 0x201 // returns 1 if desired
 
 
 /***************************************************************************************
@@ -1442,6 +1445,14 @@ typedef struct _REAPER_reaper_csurf_reg_t
 #define UNDO_STATE_POOLEDENVS 128 // contents of pooled envs -- not position, length, rate etc of pooled env instances, which is part of envelope state
 #endif
 
+#ifndef IS_MSG_VIRTKEY
+  #ifdef _WIN32
+    #define IS_MSG_VIRTKEY(msg) ((msg)->message != WM_CHAR)
+  #else
+    #define IS_MSG_VIRTKEY(msg) ((msg)->lParam&FVIRTKEY)
+  #endif
+#endif
+#define IS_MSG_FKEY(msg) ((msg)->wParam >= VK_F1 && (msg)->wParam <= VK_F24 && IS_MSG_VIRTKEY(msg))
 
 #define WDL_FILEWRITE_ON_ERROR(is_full) update_disk_counters(0,-101010110 - ((is_full) ? 1 : 0));
 
