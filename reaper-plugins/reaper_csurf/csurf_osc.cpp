@@ -564,6 +564,41 @@ struct OscLocalHandler
 };
 
 
+// copied from kbd.cpp
+static void encode_relmode1_extended(double d, int *val, int *valhw)
+{
+  // float_value[-64.0..+63.0] = val7bit + (val7bit < 0 ? z/256 : val7bit > 0 ? -z/256 : 0)
+  // valhw is -1-z where z is 0..255
+  int val7bit = 0, z = 0;
+
+  if (d < 0.0)
+  {
+    const double w = floor(d);
+    if (w >= -64.0)
+    {
+      val7bit = (int) w;
+      z = (int) ((d - w) * 256.0 + 0.5);
+      WDL_ASSERT(val7bit >= -64 && val7bit < 0);
+    }
+    else
+      val7bit = -64;
+  }
+  else if (d>0.0)
+  {
+    const double w = ceil(d);
+    if (w <= 63.0)
+    {
+      val7bit = (int)w;
+      z = (int) ((w - d) * 256.0 + 0.5);
+      WDL_ASSERT(val7bit > 0 && val7bit < 0x40);
+    }
+    else
+      val7bit = 63;
+  }
+  *val = val7bit & 0x7f;
+  *valhw = -1-wdl_min(z,255);
+}
+
 class CSurf_Osc : public IReaperControlSurface
 {
 public:
@@ -2718,11 +2753,9 @@ public:
       {
         if (isRelative)
         {
-          int ival=32768 + (int)(*val * 256.0);
-
-          if (ival < 0) ival=0;
-          else if (ival > 65535) ival=65535;
-          KBD_OnMainActionEx(cmdid, ival,-1, 65536, GetMainHwnd(), 0);
+          int val7bit, valhw;
+          encode_relmode1_extended(*val, &val7bit,&valhw);
+          KBD_OnMainActionEx(cmdid, val7bit, valhw, 1, GetMainHwnd(), 0);
         }
         else
         {

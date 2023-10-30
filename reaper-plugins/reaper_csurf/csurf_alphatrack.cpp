@@ -72,7 +72,7 @@ class CSurf_AlphaTrack : public IReaperControlSurface
   double m_pan_lastpos WDL_FIXALIGN;
   double m_vol_lastpos_dbl;
   int m_pan_touchstate;
-  int m_tranz_anysolo_poop;
+  int m_tranz_anysolo_state;
   char m_tranz_oldbuf[128];
 
   WDL_String descspace;
@@ -649,7 +649,7 @@ public:
     m_buttonstate_lastrun=0;
     m_pan_touchstate=0;
     memset(m_tranz_oldbuf,' ',sizeof(m_tranz_oldbuf));
-    m_tranz_anysolo_poop=0;
+    m_tranz_anysolo_state=0;
 
     //create midi hardware access
     m_midiin = m_midi_in_dev >= 0 ? CreateMIDIInput(m_midi_in_dev) : NULL;
@@ -734,12 +734,12 @@ public:
 
       if (m_midiout)
       {
-        if (m_tranz_anysolo_poop&1)
+        if (m_tranz_anysolo_state&1)
         {
           int bla=(now%1000)>500;
-          if (!!(m_tranz_anysolo_poop&2) != bla)
+          if (!!(m_tranz_anysolo_state&2) != bla)
           {
-            m_tranz_anysolo_poop^=2;
+            m_tranz_anysolo_state^=2;
             m_midiout->Send(0x90,0x73,bla?0x7f:0,-1);
           }
         }
@@ -934,7 +934,7 @@ public:
     FIXID(id)
     if (m_midiout)
     {
-      if (!oid) m_midiout->Send(0x90, 0x73,(m_tranz_anysolo_poop=!!solo)?0x7f:0,-1);
+      if (!oid) m_midiout->Send(0x90, 0x73,(m_tranz_anysolo_state=!!solo)?0x7f:0,-1);
       
       if (!id) m_midiout->Send(0x90,0x08,solo?0x7f:0,-1);
     }

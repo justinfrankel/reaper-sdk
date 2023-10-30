@@ -138,6 +138,15 @@ REAPER_STATICFUNC void REAPER_BSWAPINTMEM8(void *buf)
 //  CLAP plugins can access the REAPER API via:
 //  const void *clap_host.get_extension(const clap_host *host, "cockos.reaper_extension");
 //  which returns a pointer to a reaper_plugin_info_t struct
+//
+//  CLAP plugins can also (v6.80+) get their context information by getFunc("clap_get_reaper_context")
+//  void *(*clap_get_reaper_context)(const clap_host *host, int sel);
+//  sel=1 for parent track if track FX
+//  sel=2 for parent take if item FX
+//  sel=3 for project
+//  sel=4 for FxDsp
+//  sel=5 for track channel count (INT_PTR)
+//  sel=6 for index in chain
 
 #define REAPER_PLUGIN_VERSION 0x20E
 
@@ -717,6 +726,7 @@ enum { RAWMIDI_NOTESONLY=1, RAWMIDI_UNFILTERED=2 };
 #define PCM_SOURCE_EXT_MIDI_COMPACTPHRASES 0x90028 // compact the notation phrase ID space
 #define PCM_SOURCE_EXT_GETSETALLMIDI 0x90029 // parm1=(unsigned char*)data buffer, parm2=(int*)buffer length in bytes, parm2=(1:set, 0:get). Buffer is a list of { int offset, char flag, int msglen, unsigned char msg[] }. offset: MIDI ticks from previous event, flag: &1=selected &2=muted, msglen: byte length of msg (usually 3), msg: the MIDI message.
 #define PCM_SOURCE_EXT_DISABLESORTMIDIEVTS 0x90030 // disable sorting for PCM_SOURCE_EXT_GETSETMIDIEVT until PCM_SOURCE_EXT_SORTMIDIEVTS is called
+#define PCM_SOURCE_EXT_GETPOOLEDMIDIID2 0x90031 // parm1=(GUID*)id, parm2=(int*)pool user count, parm3=(MediaItem_Take**)firstuser
 #define PCM_SOURCE_EXT_GETLAPPING 0xC0100 // parm1 = ReaSample buffer, parm2=(INT_PTR)maxlap, returns size of lapping returned. usually not supported. special purpose.
 #define PCM_SOURCE_EXT_SET_PREVIEW_POS_OVERRIDE 0xC0101 // parm1 = (double *)&tickpos, tickpos<0 for no override
 
@@ -918,6 +928,7 @@ class IReaperPitchShift
     virtual int Extended(int call, void *parm1, void *parm2, void *parm3) { return 0; } // return 0 if unsupported
 };
 #define REAPER_PITCHSHIFT_EXT_GETMINMAXPRODUCTS 0x1
+#define REAPER_PITCHSHIFT_EXT_GET_CHAN_LIMIT 0x100 // return channel limit if any
 #define REAPER_PITCHSHIFT_EXT_SET_OUTPUT_BPM 0x200 // parm1 = *(double *)bpm
 #define REAPER_PITCHSHIFT_EXT_WANT_OUTPUT_BPM 0x201 // returns 1 if desired
 
@@ -1178,7 +1189,7 @@ typedef struct _REAPER_KbdSectionInfo
   KbdCmd *action_list;   // list of assignable actions
   int action_list_cnt;
 
-  KbdKeyBindingInfo *def_keys; // list of default key bindings
+  const KbdKeyBindingInfo *def_keys; // list of default key bindings
   int def_keys_cnt;
 
   // hwnd is 0 if MIDI etc. return false if ignoring
@@ -1437,7 +1448,7 @@ typedef struct _REAPER_reaper_csurf_reg_t
 #define UNDO_STATE_ALL 0xFFFFFFFF
 #define UNDO_STATE_TRACKCFG 1 // has track/master vol/pan/routing, routing/hwout envelopes too
 #define UNDO_STATE_FX 2  // track/master fx
-#define UNDO_STATE_ITEMS 4  // track items
+#define UNDO_STATE_ITEMS 4  // track items and linkedlanes
 #define UNDO_STATE_MISCCFG 8 // loop selection, markers, regions, extensions!
 #define UNDO_STATE_FREEZE 16 // freeze state -- note that isfreeze is used independently, this is only used for the undo system to serialize the already frozen state
 #define UNDO_STATE_TRACKENV 32 // non-FX envelopes only
@@ -1456,6 +1467,6 @@ typedef struct _REAPER_reaper_csurf_reg_t
 
 #define WDL_FILEWRITE_ON_ERROR(is_full) update_disk_counters(0,-101010110 - ((is_full) ? 1 : 0));
 
-#define REAPER_MAX_CHANNELS 64
+#define REAPER_MAX_CHANNELS 128
 
 #endif//_REAPER_PLUGIN_H_

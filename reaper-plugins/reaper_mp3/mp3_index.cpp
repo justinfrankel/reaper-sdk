@@ -325,7 +325,7 @@ void mp3_index::BuildFrameList(WDL_FileRead *fpsrc, mp3_metadata *quick_length_c
 
             rdbuf+=21;
 
-            m_start_eatsamples = (rdbuf[0] << 4) + ((rdbuf[1] >> 4)&0xf0);
+            m_start_eatsamples = (rdbuf[0] << 4) + ((rdbuf[1] >> 4)&0xf);
             m_end_eatsamples = (int)rdbuf[2] + (((int)rdbuf[1] & 0x0F) << 8);
 
             if ((unsigned int)m_end_eatsamples > 3200) m_end_eatsamples=0;
@@ -338,8 +338,8 @@ void mp3_index::BuildFrameList(WDL_FileRead *fpsrc, mp3_metadata *quick_length_c
             
           }
 
-          m_start_eatsamples+=530+frame_len_samples;
-          m_end_eatsamples -= 530;
+          m_start_eatsamples+=529+frame_len_samples;
+          m_end_eatsamples -= 529;
           if (m_end_eatsamples<0)m_end_eatsamples=0;
         }
         else

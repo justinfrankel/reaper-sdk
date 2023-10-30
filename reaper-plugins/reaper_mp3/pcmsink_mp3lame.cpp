@@ -38,6 +38,7 @@ extern const char *(*GetResourcePath)();
 extern const char *(*GetExePath)();
 extern const char *(*EnumCurrentSinkMetadata)(int cnt, const char **id);
 extern REAPER_Resample_Interface *(*Resampler_Create)();
+extern void (*resolve_fn)(const char *in, char *out, int outlen);
 
 extern HWND g_main_hwnd;
 
@@ -184,6 +185,18 @@ class PCM_sink_mp3lame : public PCM_sink
               }
             }
             metadata.Resort();
+
+            const char *picfn=metadata.Get("ID3:APIC_FILE");
+            if (picfn && picfn[0])
+            {
+              char resolved_picfn[2048];
+              resolved_picfn[0]=0;
+              resolve_fn(picfn, resolved_picfn, sizeof(resolved_picfn));
+              if (resolved_picfn[0] && strcmp(picfn, resolved_picfn))
+              {
+                metadata.Insert("ID3:APIC_FILE", strdup(resolved_picfn));
+              }
+            }
           }
           m_enc=new LameEncoder(srate, nch, m_bitrate,
             m_stereomode, m_quality, m_vbrmethod,

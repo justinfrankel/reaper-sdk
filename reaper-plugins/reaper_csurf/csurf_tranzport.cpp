@@ -20,7 +20,7 @@ class CSurf_TranzPort : public IReaperControlSurface
   midi_Input *m_midiin;
 
   int m_tranz_shiftstate;
-  int m_tranz_anysolo_poop;
+  int m_tranz_anysolo_state;
   int m_tranz_curmode;
   int m_arrowstates,m_button_states;
   int m_bank_offset;
@@ -382,7 +382,7 @@ public:
     m_vol_lasttouch=0;
     m_tranz_shiftstate=0;
     m_tranz_curmode=0;
-    m_tranz_anysolo_poop=0;
+    m_tranz_anysolo_state=0;
     m_arrowstates=0;
     m_button_states=0;
     m_buttonstate_lastrun=0;
@@ -442,12 +442,12 @@ public:
       m_frameupd_lastrun=now;
       if (m_midiout)
       {
-        if (m_tranz_anysolo_poop&1)
+        if (m_tranz_anysolo_state&1)
         {
           int bla=(now%1000)>500;
-          if (!!(m_tranz_anysolo_poop&2) != bla)
+          if (!!(m_tranz_anysolo_state&2) != bla)
           {
-            m_tranz_anysolo_poop^=2;
+            m_tranz_anysolo_state^=2;
             m_midiout->Send(0x90,0x73,bla?0x7f:0,-1);
           }
         }
@@ -634,7 +634,7 @@ public:
     FIXID(id)
     if (m_midiout)
     {
-      if (!oid) m_midiout->Send(0x90, 0x73,(m_tranz_anysolo_poop=!!solo)?0x7f:0,-1);
+      if (!oid) m_midiout->Send(0x90, 0x73,(m_tranz_anysolo_state=!!solo)?0x7f:0,-1);
       
       if (!id) m_midiout->Send(0x90,0x08,solo?0x7f:0,-1);
     }

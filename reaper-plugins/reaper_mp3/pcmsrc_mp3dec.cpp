@@ -616,7 +616,7 @@ void PCM_source_mp3::PooledGetSamples(PCM_source_transfer_t *block, PooledDecode
     INT64 maxs  = (m_filepool->extraInfo->GetLengthSamples(m_adjustLatency) - poolreadinst->m_decode_srcsplpos);
 
     if (maxs<0)maxs=0;
-    if (!m_adjustLatency && samples_read > maxs) samples_read = (int)maxs;
+    if (samples_read > maxs) samples_read = (int)maxs;
     if (samples_read > len) samples_read=len;
     poolreadinst->m_decode_srcsplpos+=samples_read;
 
@@ -1086,8 +1086,8 @@ REAPER_PLUGIN_DLL_EXPORT int REAPER_PLUGIN_ENTRYPOINT(REAPER_PLUGIN_HINSTANCE hI
     *((void **)&format_timestr) = rec->GetFunc("format_timestr");
     *((void **)&PeakGet_Create) = rec->GetFunc("PeakGet_Create");
     *((void **)&PeakBuild_CreateEx) = rec->GetFunc("PeakBuild_CreateEx");
-    *((void **)&resolve_fn) = rec->GetFunc("resolve_fn");   
-    *((void **)&relative_fn) = rec->GetFunc("relative_fn");   
+    *((void **)&resolve_fn) = rec->GetFunc("resolve_fn");
+    *((void **)&relative_fn) = rec->GetFunc("relative_fn");
     *((void **)&GetPeakFileName) = rec->GetFunc("GetPeakFileName");    
     *((void **)&GetPeakFileNameEx2) = rec->GetFunc("GetPeakFileNameEx2");    
     *((void **)&update_disk_counters) = rec->GetFunc("update_disk_counters");
