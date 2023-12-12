@@ -1019,6 +1019,7 @@ typedef struct _REAPER_custom_action_register_t
 ** gaccel_register_t allows you to register ("gaccel") an action into the main keyboard section action list, and at the same time
 ** a default binding for it (accel.cmd is the command ID, desc is the description, and accel's other parameters are the
 ** key to bind. 
+** 7.07+ - can use "gaccel_global" or "gaccel_globaltext" to make the accel registered as a global by default
 */
 
 typedef struct _REAPER_gaccel_register_t
