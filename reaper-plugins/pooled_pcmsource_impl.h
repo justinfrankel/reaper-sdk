@@ -463,7 +463,7 @@ class POOLED_PCMSOURCE_CLASSNAME : public PCM_source
   } \
   if (call == PCM_SOURCE_EXT_ENUMMETADATA && parm2 && parm3) \
   { \
-    const char *k, *v=(metadata)->Enumerate((int)(INT_PTR)parm1, &k); if (!k || !v) return 0; \
+    const char *k, *v=(metadata)->Enumerate((int)(INT_PTR)parm1, &k); if (!v) return 0; \
     *(const char**)parm2=k; *(const char**)parm3=v; return 1; \
   }
 

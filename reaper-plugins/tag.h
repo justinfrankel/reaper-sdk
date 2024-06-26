@@ -614,19 +614,19 @@ int ReadMediaTags(WDL_FileRead *fr, WDL_StringKeyedArray<char*> *metadata,
     fr->Read(buf, 32);
     if (!memcmp(buf, "APETAGEX", 8) && _GetInt32LE(buf+8) == 2000)
     {
-      int taglen=_GetInt32LE(buf+12);
+      int taglen=_GetInt32LE(buf+12); // includes footer but not header
       int tagcnt=_GetInt32LE(buf+16);
-      // int apeflags=_GetInt32LE(buf+20);
-      if (taglen > 32 && fend-taglen > fstart && tagcnt)
+      int apelen=taglen+32; // including header and footer
+      taglen -= 32; // not including header or footer
+      if (taglen > 0 && tagcnt > 0 && fend-apelen > fstart)
       {
-        fr->SetPosition(fend-taglen);
-        int readlen=taglen-32; // don't re-read footer
-        buf=(unsigned char*)hb.Resize(readlen);
-        fr->Read(buf, readlen);
-        ParseAPEv2(buf, readlen, tagcnt, metadata);
+        fr->SetPosition(fend-apelen+32); // set to the end of the header
+        buf=(unsigned char*)hb.Resize(taglen, false);
+        fr->Read(buf, taglen);
+        ParseAPEv2(buf, taglen, tagcnt, metadata);
       }
       has_apev2=true;
-      fend -= taglen;
+      fend -= apelen;
     }
   }
 

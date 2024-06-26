@@ -39,6 +39,7 @@ extern const char *(*GetExePath)();
 extern const char *(*EnumCurrentSinkMetadata)(int cnt, const char **id);
 extern REAPER_Resample_Interface *(*Resampler_Create)();
 extern void (*resolve_fn)(const char *in, char *out, int outlen);
+extern void (*SetCurrentSinkError)(const char *errmsg, const char *fn);
 
 extern HWND g_main_hwnd;
 
@@ -168,7 +169,8 @@ class PCM_sink_mp3lame : public PCM_sink
         if (m_fh && !m_fh->IsOpen())
         {
           delete m_fh;
-          m_fh=0;
+          m_fh=NULL;
+          if (SetCurrentSinkError) SetCurrentSinkError(__LOCALIZE("Can't create file","mp3"), fn);
         }
         if (m_fh) 
         {

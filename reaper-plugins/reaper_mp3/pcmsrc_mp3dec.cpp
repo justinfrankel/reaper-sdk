@@ -51,6 +51,7 @@ void (*HiresPeaksFromSource)(PCM_source *src, PCM_source_peaktransfer_t *block);
 const char *(*EnumCurrentSinkMetadata)(int cnt, const char **id);
 void (*__mergesort)(void *base, size_t nmemb, size_t size, int (*compar)(const void *, const void *), void *tmpspace);
 void (*OpenImageModal)(HWND hwnd, const char *imgfn, const char *imgdesc);
+void (*SetCurrentSinkError)(const char *errmsg, const char *fn);
 
 #define SOURCE_TYPE "MP3"
 
@@ -333,7 +334,6 @@ int POOLED_PCMSOURCE_CLASSNAME::PoolExtended(int call, void* parm1, void* parm2,
     ArrayToMetadata(metadata_arr, &mex_metadata);
 
     WDL_StringKeyedArray<char*> metadata(false, WDL_StringKeyedArray<char*>::freecharptr);
-    if (merge) CopyMetadata(&m_filepool->extraInfo->m_metadata, &metadata);
     AddMexMetadata(&mex_metadata, &metadata, m_filepool->extraInfo->m_srate);
 
     const char *fn=GetFileName();
@@ -344,40 +344,20 @@ int POOLED_PCMSOURCE_CLASSNAME::PoolExtended(int call, void* parm1, void* parm2,
     unsigned int spos=m_filepool->extraInfo->m_stream_startpos;
     unsigned int epos=m_filepool->extraInfo->m_stream_endpos;
 
-    // preserve existing ID3 tags that we don't handle
+    // preserve existing ID3 tags that we aren't overwriting or deleting
     WDL_PtrList<ID3RawTag> rawtags;
     if (merge && ok)
     {
       if (ReadID3Raw(fr, &rawtags) != spos) rawtags.Empty(true);
       if (rawtags.GetSize())
       {
-        // delete any rawtags that represent data that *could* be added from the media explorer
-        WDL_PtrList<const char> del_mexkeys;
-        int i=0;
-        const char *mexkey;
-        while ((mexkey=EnumMexKeys(i++))) del_mexkeys.Add(mexkey);
-
-        // also delete custom ID3:TXXX fields the caller wants to remove
-        // these empty-value entries were passed in but not added to metadata
-        for (const char **arr=metadata_arr; arr[0] && arr[1]; arr += 2)
+        // delete any existing tags that we'll be replacing
+        for (int i=0; i < metadata.GetSize(); ++i)
         {
-          if (arr[0] && arr[0][0] && (!arr[1] || !arr[1][0])) del_mexkeys.Add(arr[0]);
+          const char *key;
+          metadata.Enumerate(i, &key);
+          if (!strncmp(key, "ID3:", 4)) DeleteID3Raw(&rawtags, key);
         }
-
-        for (int i=0; i < del_mexkeys.GetSize(); ++i)
-        {
-          const char *mexkey=del_mexkeys.Get(i);
-          int idx=0;
-          char tkey[256];
-          while (EnumMetadataKeyFromMexKey(mexkey, idx++, tkey, sizeof(tkey)) && tkey[0])
-          {
-            if (!strncmp(tkey, "ID3:", 4)) DeleteID3Raw(&rawtags, tkey);
-          }
-        }
-
-        // media explorer can also add embedded ixml and xmp
-        DeleteID3Raw(&rawtags, "ID3:PRIV:iXML");
-        DeleteID3Raw(&rawtags, "ID3:PRIV:XMP");
       }
     }
 
@@ -1101,6 +1081,7 @@ REAPER_PLUGIN_DLL_EXPORT int REAPER_PLUGIN_ENTRYPOINT(REAPER_PLUGIN_HINSTANCE hI
     *((void **)&GetPreferredDiskReadModePeak) = rec->GetFunc("GetPreferredDiskReadModePeak");
     *((void **)&HiresPeaksFromSource) = rec->GetFunc("HiresPeaksFromSource");
     *((void**)&OpenImageModal) = rec->GetFunc("OpenImageModal");
+    *((void**)&SetCurrentSinkError) = rec->GetFunc("SetCurrentSinkError");
 
     *(void **)&gOnMallocFailPtr = rec->GetFunc("gOnMallocFail");
 
