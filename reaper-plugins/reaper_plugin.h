@@ -686,7 +686,7 @@ typedef struct _REAPER_tempochg
 #define PCM_SOURCE_EXT_SETITEMCONTEXT 0x10004 // parm1=MediaItem*,  parm2=MediaItem_Take*
 #define PCM_SOURCE_EXT_ADDMIDIEVENTS 0x10005 // parm1=pointer to midi_realtime_write_struct_t, nch=1 for replace, =0 for overdub, parm2=midi_quantize_mode_t* (optional)
 #define PCM_SOURCE_EXT_GETASSOCIATED_RPP 0x10006 // parm1=pointer to char* that will receive a pointer to the string
-#define PCM_SOURCE_EXT_GETMETADATA 0x10007 // parm1=pointer to name string, parm2=pointer to buffer, parm3=(int)buffersizemax. returns length used. defined strings are "TITLE", "ARTIST", "ALBUM", "YEAR", "GENRE", "COMMENT", "DESC", "BPM", "KEY", "DB_CUSTOM"
+#define PCM_SOURCE_EXT_GETMETADATA 0x10007 // parm1=pointer to name string, parm2=pointer to buffer, parm3=(int)buffersizemax. returns length used. defined strings are "TITLE", "ARTIST", "ALBUM", "TRACKNUMBER", "YEAR", "GENRE", "COMMENT", "DESC", "BPM", "KEY", "DB_CUSTOM"
 #define PCM_SOURCE_EXT_SETASSECONDARYSOURCE 0x10008  // parm1=optional pointer to src (same subtype as receiver), if supplied, set the receiver as secondary src for parm1's editor, if not supplied, receiver has to figure out if there is an appropriate editor open to attach to, parm2/3 impl defined
 #define PCM_SOURCE_EXT_SHOWMIDIPREVIEW 0x10009  // parm1=(MIDI_eventlist*), can be NULL for all-notes-off (also to check if this source supports showing preview at this moment)
 #define PCM_SOURCE_EXT_SEND_EDITOR_MSG 0x1000A  // impl defined parameters
@@ -750,6 +750,7 @@ enum { RAWMIDI_NOTESONLY=1, RAWMIDI_UNFILTERED=2, RAWMIDI_CHANNELFILTER=3 }; // 
 #define PCM_SOURCE_EXT_DISABLESORTMIDIEVTS 0x90030 // disable sorting for PCM_SOURCE_EXT_GETSETMIDIEVT until PCM_SOURCE_EXT_SORTMIDIEVTS is called
 #define PCM_SOURCE_EXT_GETPOOLEDMIDIID2 0x90031 // parm1=(GUID*)id, parm2=(int*)pool user count, parm3=(MediaItem_Take**)firstuser
 #define PCM_SOURCE_EXT_GETSETMIDICHANFILTER 0x90032 // parm1=(int*)filter: filter&(1<<n) to play channel n, parm2=(int)set: 0 to get, 1 to set
+#define PCM_SOURCE_EXT_REFRESH_EDITORS 0x90033 // synchronously refresh any open editors
 #define PCM_SOURCE_EXT_GETLAPPING 0xC0100 // parm1 = ReaSample buffer, parm2=(INT_PTR)maxlap, returns size of lapping returned. usually not supported. special purpose.
 #define PCM_SOURCE_EXT_SET_PREVIEW_POS_OVERRIDE 0xC0101 // parm1 = (double *)&tickpos, tickpos<0 for no override
 
