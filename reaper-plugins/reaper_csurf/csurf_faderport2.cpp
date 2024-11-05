@@ -111,38 +111,38 @@ class CSurf_FaderPort_FP2 : public IReaperControlSurface
             }
           }
         break;
-        case 0x4D: // automation  touch
+        case 0x4D: // automation touch/latch
           if (ishit)
           {
             MediaTrack *tr=CSurf_TrackFromID(m_bank_offset,g_csurf_mcpmode);
 
             if (tr)
             {
-              SetTrackAutomationMode(tr,2);
+              SetTrackAutomationMode(tr, (m_faderport_buttonstates&2) ? 4 : 2);
               CSurf_SetAutoMode(-1,NULL);
             }
           }
         break;
-        case 0x4B: // automation write
+        case 0x4B: // automation write/latch preview
           if (ishit)
           {
             MediaTrack *tr=CSurf_TrackFromID(m_bank_offset,g_csurf_mcpmode);
 
             if (tr)
             {
-              SetTrackAutomationMode(tr,3);
+              SetTrackAutomationMode(tr,(m_faderport_buttonstates&2) ? 5 : 3);
               CSurf_SetAutoMode(-1,NULL);
             }
           }
         break;
-        case 0x4A: // automation read
+        case 0x4A: // automation read/clear
           if (ishit)
           {
             MediaTrack *tr=CSurf_TrackFromID(m_bank_offset,g_csurf_mcpmode);
 
             if (tr)
             {
-              SetTrackAutomationMode(tr,1);
+              SetTrackAutomationMode(tr,(m_faderport_buttonstates&2) ? 0 : 1);
               CSurf_SetAutoMode(-1,NULL);
             }
           }

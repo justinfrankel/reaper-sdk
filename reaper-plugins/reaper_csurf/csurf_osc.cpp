@@ -77,7 +77,7 @@ bool isint(const char* p)
   if (!*p) return false;
   while (*p)
   {
-    if (!isdigit(*p)) return false;
+    if (!isdigit_safe(*p)) return false;
     ++p;
   }
   return true;
@@ -95,7 +95,7 @@ bool isfloat(const char* p)
       if (hasdec) return false;
       hasdec=true;
     }
-    else if (!isdigit(*p))
+    else if (!isdigit_safe(*p))
     {
       return false;
     }
@@ -268,7 +268,7 @@ static int parse_number_or_command_id(const char *b)
     return atoi(b);
   char buf[1024];
   const char *p = b+1;
-  while (*p == '_' || isalnum(*p)) p++;
+  while (*p == '_' || isalnum_safe(*p)) p++;
   if (p == b+1) return 0;
   lstrcpyn_safe(buf,b,wdl_min(sizeof(buf), p+1 - b));
   return NamedCommandLookup(buf);
@@ -278,11 +278,11 @@ static const char *skip_number_or_command_id(const char *b)
   if (*b == '_')
   {
     b++;
-    while (*b == '_' || isalnum(*b)) b++;
+    while (*b == '_' || isalnum_safe(*b)) b++;
   }
   else
   {
-    while (isdigit(*b)) ++b;
+    while (isdigit_safe(*b)) ++b;
   }
   return b;
 }
@@ -374,7 +374,7 @@ static int OscPatternMatch(const char* a, const char* b,
       ++a;
       while (*a == '@') // multiple @ in a row, match one digit to all but the last
       {
-        if (isdigit(*b))
+        if (isdigit_safe(*b))
         {
           if (wantwc && *numwc < MAX_OSC_WC*MAX_OSC_RPTCNT) 
           {
@@ -393,7 +393,7 @@ static int OscPatternMatch(const char* a, const char* b,
       }
       b=skip_number_or_command_id(b);
 
-      while (b[0] == ',' && (b[1] == '_' || isdigit(b[1])))
+      while (b[0] == ',' && (b[1] == '_' || isdigit_safe(b[1])))
       {
         ++b;
         if (wantwc && *numwc < MAX_OSC_WC*MAX_OSC_RPTCNT) 
@@ -530,12 +530,7 @@ struct OscVal
   }
 };
 
-static int _strcmp_p(const char** a, const char** b)
-{
-  return strcmp(*a, *b);
-}
-
-static int _osccmp_p(const char** a, const char** b)
+static int _osccmp_p(const char * const *a, const char * const *b)
 {
   return OscPatternMatch(*a, *b, 0, 0, 0, 0, 0, 0);
 }
@@ -645,7 +640,7 @@ public:
   // because we need to look up by both key and value
   WDL_PtrList<char> m_msgtab;
 
-  WDL_AssocArray<const char*, int> m_msgkeyidx; // [key] => index of key
+  WDL_StringKeyedArray<int> m_msgkeyidx; // [key] => index of key
   WDL_AssocArray<const char*, int> m_msgvalidx; // [value] => index of value
 
   // project state .. keep this to a minimum
@@ -675,7 +670,7 @@ public:
             int maxpacketsz, int sendsleep, 
             OscLocalHandler* osc_local,
             const char* cfgfn)
-  : m_msgkeyidx(_strcmp_p),  m_msgvalidx(_osccmp_p), m_lastvals(true)
+  : m_msgkeyidx(true, NULL, false),  m_msgvalidx(_osccmp_p), m_lastvals(true)
   {
     m_osc=0;  
     m_osc_local=osc_local;
@@ -4464,12 +4459,15 @@ bool OscListener(void* obj, OscMessageRead* rmsg)
 static WDL_DLGRET OscListenProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static OscHandler* s_osc;
+  static WDL_FastString s_state;
+  static bool s_state_chg;
 
   switch (uMsg)
   {
     case WM_INITDIALOG:
     {
       s_osc=0;
+      s_state.Set("");
       if (lParam)
       {
         char buf[512];
@@ -4479,6 +4477,7 @@ static WDL_DLGRET OscListenProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM l
         s_osc=OscAddLocalListener(OscListener, hwndDlg, (int)lParam);
         if (s_osc) SetTimer(hwndDlg, 1, 50, 0);
         else SetDlgItemText(hwndDlg, IDC_EDIT1, __LOCALIZE("Error: can't create OSC listener","csurf_osc"));
+        SetTimer(hwndDlg,2,100,0);
       }
     }
     return 0;
@@ -4487,6 +4486,15 @@ static WDL_DLGRET OscListenProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM l
       if (wParam == 1)
       {
         OscGetInput(s_osc); // will call back to OscListener
+      }
+      else if (wParam == 2)
+      {
+        if (s_state_chg)
+        {
+          SetDlgItemText(hwndDlg, IDC_EDIT1, s_state.Get());
+          SendDlgItemMessage(hwndDlg, IDC_EDIT1, EM_SCROLL, SB_BOTTOM, 0);
+          s_state_chg = false;
+        }
       }
     return 0;
 
@@ -4497,23 +4505,22 @@ static WDL_DLGRET OscListenProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM l
         const char* msg=(const char*)lParam;
         if (msg[0])
         {                 
-          char buf[8192];
-          int nlen=strlen(msg);
-          if (nlen < sizeof(buf)-1)
+          s_state.Append(msg);
+          int skip = 0;
+          while (skip < s_state.GetLength()-2048 && s_state.Get()[skip])
           {
-            GetDlgItemText(hwndDlg, IDC_EDIT1, buf, sizeof(buf));
-            int olen=strlen(buf);
-            if (olen+nlen > sizeof(buf)-1) buf[0]=0;
-            strcat(buf, msg);
-            SetDlgItemText(hwndDlg, IDC_EDIT1, buf);
-            SendDlgItemMessage(hwndDlg, IDC_EDIT1, EM_SCROLL, SB_BOTTOM, 0);
+            while (s_state.Get()[skip] && s_state.Get()[skip] != '\r' && s_state.Get()[skip] != '\n') skip++;
+            while (s_state.Get()[skip] == '\r' || s_state.Get()[skip] == '\n') skip++;
           }
+          if (skip>0) s_state.DeleteSub(0,skip);
+          s_state_chg=true;
         }
       }
     }
     return 0;
 
     case WM_DESTROY:
+      s_state.Set("");
       OscRemoveLocalListener(s_osc);
       delete s_osc;
       s_osc=0;

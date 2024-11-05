@@ -572,8 +572,25 @@ static void ProcessCommand(WDL_FastString *o, const char *in, int inlen)
 class wwwServer : public WebServerBaseClass
 {
 public:
-  wwwServer() { tmpgen=NULL; userpass[0]=0; strcpy(def_file,"/index.html"); } 
-  ~wwwServer() { delete tmpgen; }
+  wwwServer()
+  {
+    tmpgen=NULL;
+    userpass[0]=0;
+    strcpy(def_file,"/index.html");
+    for (int x = 0; x < 32; x ++)
+    {
+      char fmt[32], tmp[256];
+      snprintf(fmt,sizeof(fmt),"header%d",x+1);
+      GetPrivateProfileString("csurf_www",fmt,"!",tmp,sizeof(tmp),get_ini_file());
+      if (!strcmp(tmp,"!")) break;
+      if (strstr(tmp,":")) m_extra_headers.Add(strdup(tmp));
+    }
+  }
+  ~wwwServer()
+  {
+    delete tmpgen;
+    m_extra_headers.Empty(true,free);
+  }
   JNL_StringPageGenerator *tmpgen;
 
   virtual IPageGenerator *onConnection(JNL_HTTPServ *serv, int port)
@@ -632,7 +649,10 @@ public:
       serv->set_reply_header("Content-Type: text/plain");
       serv->set_reply_header("Cache-Control: no-cache, must-revalidate"); // HTTP/1.1
       serv->set_reply_header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); // Date in the past
+      for (int x = 0; x < m_extra_headers.GetSize(); x ++)
+        serv->set_reply_header(m_extra_headers.Get(x));
       serv->set_reply_string("HTTP/1.1 200 OK");
+
       serv->set_reply_size(res ? strlen(res->str.Get()) : 0);
       serv->send_reply();
       return res;
@@ -710,6 +730,7 @@ public:
   }
 
   char userpass[256],def_file[128];
+  WDL_PtrList<char> m_extra_headers;
 };
 
 void GetLocalIP(char* buf, int buflen);

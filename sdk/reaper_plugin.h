@@ -251,6 +251,8 @@ typedef struct reaper_plugin_info_t
   hwnd_info:  (6.29+)
     query information about a hwnd
       int (*callback)(HWND hwnd, INT_PTR info_type);
+     -- note, for v7.23+ ( -- check with GetAppVersion() -- ), you may also use a function with this prototype:
+      int (*callback)(HWND hwnd, INT_PTR info_type, const MSG *msg); // if msg is non-NULL, it will have information about the currently-processing event.
 
     return 0 if hwnd is not a known window, or if info_type is unknown
 
@@ -281,6 +283,10 @@ typedef struct reaper_plugin_info_t
           // rename notification, parm is (const char *)new filename
        }
        if (msg == 0x100) return (INT_PTR)"samples"; // subdirectory name, if desired (return 0 if not desired)
+
+       if (msg == 0x101) return (INT_PTR)fxdspparentcontext_if_any; // if fx, optional
+       if (msg == 0x102) return (INT_PTR)takecontext_if_any; // if pcmsrc, optional
+       if (msg == 0x103) return (INT_PTR)"context/plug-in name"; // optional
        return 0;
      }
 
@@ -487,6 +493,7 @@ typedef struct _PCM_source_peaktransfer_t
 #define PEAKINFO_EXTRADATA_MIDITEXT ((int)'m')
 #define PEAKINFO_EXTRADATA_LOUDNESS_DEPRECATED ((int)'l') // use PEAKINFO_EXTRADATA_LOUDNESS_RAW instead
 #define PEAKINFO_EXTRADATA_LOUDNESS_RAW ((int)'r')
+#define PEAKINFO_EXTRADATA_LOUDNESS_INTERNAL ((int)'!')
 
   int extra_requested_data_type; // PEAKINFO_EXTRADATA_* for spectral information
   int extra_requested_data_out; // output: number of samples returned (== peaks_out if successful)
@@ -508,6 +515,7 @@ typedef struct _PCM_source_peaktransfer_t
       case PEAKINFO_EXTRADATA_MIDITEXT: return MIDITEXT_BYTES;
       case PEAKINFO_EXTRADATA_LOUDNESS_DEPRECATED: return LOUDNESS_DEPRECATED_BYTES;
       case PEAKINFO_EXTRADATA_LOUDNESS_RAW: return LOUDNESS_RAW_BYTES;
+      case PEAKINFO_EXTRADATA_LOUDNESS_INTERNAL: return LOUDNESS_INTERNAL_BYTES;
     }
     return 0;
   }
@@ -517,8 +525,12 @@ typedef struct _PCM_source_peaktransfer_t
     SPECTRAL1_BYTES=4, // one LE int per channel per sample spectral info: low 15 bits frequency, next 14 bits density (16383=tonal, 0=noise, 12288 = a bit noisy)
     MIDITEXT_BYTES=1, // at most one character per pixel
     LOUDNESS_DEPRECATED_BYTES=4, // 4 byte LE integer: LUFS-M low 12 bits, LUFS-S next 12 bits, 0-3000 valid: ex: 0 means -150.0 LU (consider this -inf), 1500 means +0 LU - loudness values returned for each channel even if the calculation is for all channels combined
-    LOUDNESS_RAW_BYTES=8, // 4 byte LE float LUFS-M low 32 bits, 4 byte LE float LUFS-S high 32 bits, values are a windowed average of squared filtered samples
-         // intermediate loudness calculation values are returned for each channel and must be combined before display
+    LOUDNESS_RAW_BYTES=8, // 4 byte LE float LUFS-M low 32 bits, 4 byte LE float LUFS-S high 32 bits:
+         // stored values are a windowed, weighted mean square of samples for each channel,
+         // which must be combined to calculate total loudness. specifically,
+         // the stored values are z(i) in formula 2 in this document:
+         // https://www.itu.int/dms_pubrec/itu-r/rec/bs/R-REC-BS.1770-0-200607-S!!PDF-E.pdf
+    LOUDNESS_INTERNAL_BYTES=4, // REAPER internal use only
   };
 
 } PCM_source_peaktransfer_t;
@@ -753,6 +765,7 @@ enum { RAWMIDI_NOTESONLY=1, RAWMIDI_UNFILTERED=2, RAWMIDI_CHANNELFILTER=3 }; // 
 #define PCM_SOURCE_EXT_REFRESH_EDITORS 0x90033 // synchronously refresh any open editors
 #define PCM_SOURCE_EXT_GETLAPPING 0xC0100 // parm1 = ReaSample buffer, parm2=(INT_PTR)maxlap, returns size of lapping returned. usually not supported. special purpose.
 #define PCM_SOURCE_EXT_SET_PREVIEW_POS_OVERRIDE 0xC0101 // parm1 = (double *)&tickpos, tickpos<0 for no override
+#define PCM_SOURCE_EXT_SET_PREVIEW_LOOPCNT 0xC0102 // parm1 = (INT64*)&decoding_loopcnt, valid only for the immediately following GetSamples(), only in track preview contexts, when not using buffering source
 
 // register with Register("pcmsrc",&struct ... and unregister with "-pcmsrc"
 typedef struct _REAPER_pcmsrc_register_t {
@@ -916,6 +929,7 @@ public:
 };
 #define RESAMPLE_EXT_SETRSMODE 0x1000 // parm1 == (int)resamplemode, or -1 for project default
 #define RESAMPLE_EXT_SETFEEDMODE 0x1001 // parm1 = nonzero to set ResamplePrepare's out_samples to refer to request a specific number of input samples
+#define RESAMPLE_EXT_PREALLOC 0x1002 // parm1 = nch, parm2=input blocksize, parm3=output blocksize
 #define RESAMPLE_EXT_RESETWITHFRACPOS 0x6000 // parm1 = (double*)&fracpos
 
 
