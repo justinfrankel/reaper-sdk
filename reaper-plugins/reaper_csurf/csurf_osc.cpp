@@ -4061,12 +4061,14 @@ public:
         {
           if (call == CSURF_EXT_SETFXENABLED_IMPL) 
           {
+            if (fxidx==m_curfx) SETSURFBOOLWC("FX_BYPASS", wc, 0, en);
             SETSURFBOOLWC("FX_BYPASS", wc, 1, en);
             if (isinst) SETSURFBOOL("FX_INST_BYPASS", en);
             if (iseq) SETSURFBOOL("FX_EQ_BYPASS", en);
           }
           else if (call == CSURF_EXT_SETFXOPEN_IMPL)
           {
+            if (fxidx==m_curfx) SETSURFBOOLWC("FX_OPEN_UI", wc, 0, en);
             SETSURFBOOLWC("FX_OPEN_UI", wc, 1, en);
             if (isinst) SETSURFBOOL("FX_INST_OPEN_UI", en);
             if (iseq) SETSURFBOOL("FX_EQ_OPEN_UI", en);
