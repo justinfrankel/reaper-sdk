@@ -544,7 +544,7 @@ typedef struct _REAPER_midi_realtime_write_struct_t
   double srate;
   int length; // length in samples
   int overwritemode; // 0=overdub, 1=replace, 
-                     // -1 = literal (do nothing just add)
+                     // -1 = literal (do nothing just add), -2 = literal, do not apply default curves
                      // 65536+(16 bit mask) = replace notes on just these channels (touch-replace)
   MIDI_eventlist *events;
   double item_playrate;
