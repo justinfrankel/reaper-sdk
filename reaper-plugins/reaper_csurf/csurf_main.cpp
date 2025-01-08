@@ -256,6 +256,9 @@ void (*Undo_EndBlock)(const char *, int);
 void (*CSurf_FlushUndo)(bool force);
 int (*Plugin_Register)(const char *name, void *infostruct);
 
+int (*realloc_cmd_register_buf)(char **ptr, int *sz);
+void (*realloc_cmd_clear)(int tok);
+
 
 bool (*ToggleTrackSendUIMute)(MediaTrack *tr, int sendidx);
 bool (*GetTrackSendUIMute)(MediaTrack *tr, int sendidx, bool *mute);
@@ -506,6 +509,10 @@ REAPER_PLUGIN_DLL_EXPORT int REAPER_PLUGIN_ENTRYPOINT(REAPER_PLUGIN_HINSTANCE hI
   IMPAPI(get_config_var);
   IMPAPI(projectconfig_var_getoffs);
   IMPAPI(projectconfig_var_addr);
+
+  IMPAPI(realloc_cmd_register_buf);
+  IMPAPI(realloc_cmd_clear);
+
   if (errcnt) return 0;
 
   int sztmp;

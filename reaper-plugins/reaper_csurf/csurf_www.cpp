@@ -140,24 +140,35 @@ static void simpleEscapeString(const char *p, WDL_FastString *o, char ign=0)
 
 static void sendTrackLyrics(int tridx, WDL_FastString *o)
 {
-  char buf[16384]; 
-  buf[0]=0;
-  int len=sizeof(buf);
   o->AppendFormatted(64,"LYRICS\t%d\t",tridx);
   MediaTrack *tr = CSurf_TrackFromID(tridx,false);
-  if (tr && GetTrackMIDILyrics(tr, 2, buf, &len) && len) simpleEscapeString(buf,o,'\t'); 
+  if (tr)
+  {
+    char buf[16384], *bptr = buf;
+    buf[0]=0;
+    int len=sizeof(buf), len_alloc=sizeof(buf);
+    const int tok = realloc_cmd_register_buf(&bptr,&len_alloc);
+    if (GetTrackMIDILyrics(tr, 2, bptr, &len) && len && WDL_NORMALLY(len <= len_alloc))
+    {
+      simpleEscapeString(bptr,o,'\t');
+    }
+    realloc_cmd_clear(tok);
+  }
   o->Append("\n");
 }
 
 static void getProjectExtState(const char *sec, const char *nm, WDL_FastString *o)
 {
-  char tmp[16384];
+  char buf[16384], *bptr = buf;
   o->AppendFormatted(1024,"PROJEXTSTATE\t%s\t%s\t",sec,nm);
-  tmp[0]=0;
-  if (GetProjExtState(NULL,sec,nm,tmp,sizeof(tmp)))
+  buf[0]=0;
+  int len_alloc=sizeof(buf);
+  const int tok = realloc_cmd_register_buf(&bptr,&len_alloc);
+  if (GetProjExtState(NULL,sec,nm,buf,sizeof(buf)))
   {
-    simpleEscapeString(tmp,o);
+    simpleEscapeString(bptr,o);
   }
+  realloc_cmd_clear(tok);
   o->Append("\n");
 }
 

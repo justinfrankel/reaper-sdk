@@ -48,6 +48,8 @@ extern void (*VkbStuffMessage)(MIDI_event_t *evt, bool wantCurChan);
 extern int (*CSurf_TrackToID)(MediaTrack *track, bool mcpView);
 extern MediaTrack *(*CSurf_TrackFromID)(int idx, bool mcpView);
 extern int (*CSurf_NumTracks)(bool mcpView);
+extern int (*realloc_cmd_register_buf)(char **ptr, int *sz);
+extern void (*realloc_cmd_clear)(int tok);
 
 extern int (*Plugin_Register)(const char *name, void *infostruct);
 
