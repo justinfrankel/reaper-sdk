@@ -763,9 +763,12 @@ enum { RAWMIDI_NOTESONLY=1, RAWMIDI_UNFILTERED=2, RAWMIDI_CHANNELFILTER=3 }; // 
 #define PCM_SOURCE_EXT_GETPOOLEDMIDIID2 0x90031 // parm1=(GUID*)id, parm2=(int*)pool user count, parm3=(MediaItem_Take**)firstuser
 #define PCM_SOURCE_EXT_GETSETMIDICHANFILTER 0x90032 // parm1=(int*)filter: filter&(1<<n) to play channel n, parm2=(int)set: 0 to get, 1 to set
 #define PCM_SOURCE_EXT_REFRESH_EDITORS 0x90033 // synchronously refresh any open editors
+#define PCM_SOURCE_EXT_GET_LYRICS      0x90040 // parm1=buffer, parm2= &len, parm3=(INT_PTR)flag - see GetTrackMIDILyrics
+#define PCM_SOURCE_EXT_SET_LYRICS      0x90041 // parm1=nul term buffer
 #define PCM_SOURCE_EXT_GETLAPPING 0xC0100 // parm1 = ReaSample buffer, parm2=(INT_PTR)maxlap, returns size of lapping returned. usually not supported. special purpose.
 #define PCM_SOURCE_EXT_SET_PREVIEW_POS_OVERRIDE 0xC0101 // parm1 = (double *)&tickpos, tickpos<0 for no override
 #define PCM_SOURCE_EXT_SET_PREVIEW_LOOPCNT 0xC0102 // parm1 = (INT64*)&decoding_loopcnt, valid only for the immediately following GetSamples(), only in track preview contexts, when not using buffering source
+
 
 // register with Register("pcmsrc",&struct ... and unregister with "-pcmsrc"
 typedef struct _REAPER_pcmsrc_register_t {
