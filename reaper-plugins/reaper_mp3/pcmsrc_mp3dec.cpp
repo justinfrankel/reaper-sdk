@@ -371,6 +371,7 @@ int POOLED_PCMSOURCE_CLASSNAME::PoolExtended(int call, void* parm1, void* parm2,
     int apelen=PackApeChunk(&hb, &metadata);
     if (apelen && ok) ok = fw->Write(hb.Get(), apelen) == apelen;
 
+    rawtags.Empty(true);
     delete fr;
     delete fw;
     return ok;
@@ -785,10 +786,11 @@ WDL_DLGRET PCM_source_mp3::propsDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, 
             const char *infostr=m_filepool->extraInfo->m_metadata.Get("ID3:APIC");
             if (infostr)
             {
-              WDL_FastString imgfn, imgdesc;
-              if (ExportMetadataImageToTmpFile(GetFileName(), infostr, &imgdesc, NULL, &imgfn))
+              WDL_FastString imgfn;
+              if (ExportMetadataImageToTmpFile(GetFileName(), infostr, &imgfn))
               {
-                if (OpenImageModal) OpenImageModal(hwndDlg,imgfn.Get(), imgdesc.Get());
+                const char *imgdesc = m_filepool->extraInfo->m_metadata.Get("ID3:APIC_DESC");
+                if (OpenImageModal) OpenImageModal(hwndDlg,imgfn.Get(), imgdesc);
                 DeleteFile(imgfn.Get());
               }
             }

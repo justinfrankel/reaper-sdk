@@ -457,18 +457,20 @@ bool ParseID3v2(char *buf, int tag_size,
           dataoffs=chunk_start_pos+(WDL_INT64)(p-buf+skip_bytes);
 
           if (shortdesc.GetLength())
-          {
-            if (frame_data.GetLength()) frame_data.Append(" ");
-            frame_data.Append("desc:");
-            frame_data.Append(shortdesc.Get());
-          }
+            metadata->Insert("ID3:APIC_DESC",strdup(shortdesc.Get()));
+        }
+        if (pictype >= 0 && pictype < 128)
+        {
+          char tmp[32];
+          snprintf(tmp,sizeof(tmp),"%d",pictype);
+          metadata->Insert("ID3:APIC_TYPE",strdup(tmp));
         }
 
         if (pictype >= 0 && pictype < 128 && dataoffs > 0 && skip_bytes < frame_sz)
         {
           if (frame_data.GetLength()) frame_data.Append(" ");
-          frame_data.AppendFormatted(512, "type:%d offset:%llu length:%d",
-            pictype, dataoffs, frame_sz-skip_bytes);
+          frame_data.AppendFormatted(512, "offset:%" WDL_PRI_UINT64 " length:%d",
+            dataoffs, frame_sz-skip_bytes);
         }
       }
     }
