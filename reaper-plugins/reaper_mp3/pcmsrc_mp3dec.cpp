@@ -33,6 +33,8 @@ REAPER_PLUGIN_HINSTANCE g_hInst;
 
 HWND g_main_hwnd;
 
+int g_config_reapindex_minsize = 12000000;
+
 REAPER_Resample_Interface *(*Resampler_Create)();
 void (*format_timestr)(double tpos, char *buf, int buflen);
 REAPER_PeakGet_Interface *(*PeakGet_Create)(const char *fn, int srate, int nch);
@@ -218,7 +220,7 @@ public:
 
       if (!m_index)
       {
-        m_index = mp3_index::indexFromFilename(filename,file); // skips leading id3v2 tags
+        m_index = mp3_index::indexFromFilename(filename,file, file->GetSize()>=g_config_reapindex_minsize);
       }
 
       if (m_index && m_index->GetFrameCount())
@@ -736,7 +738,10 @@ void PCM_source_mp3::GetPropsStr(WDL_FastString &s)
             (m_filepool->extraInfo->GetLengthSamples(m_adjustLatency)/(double)m_filepool->extraInfo->m_srate) * 8.0/1000.0);
       s.Append("\r\n");
 
-      s.AppendFormatted(512,__LOCALIZE_VERFMT("%d frames in file [indexed]","mp3dec_DLG_120"),m_filepool->extraInfo->m_index->GetFrameCount());
+      if (m_filepool->extraInfo->m_index->IsCBR())
+        s.AppendFormatted(512,__LOCALIZE_VERFMT("%d frames in file [CBR]","mp3dec_DLG_120"),m_filepool->extraInfo->m_index->GetFrameCount());
+      else
+        s.AppendFormatted(512,__LOCALIZE_VERFMT("%d frames in file [indexed]","mp3dec_DLG_120"),m_filepool->extraInfo->m_index->GetFrameCount());
       s.Append("\r\n");
     }
     else
@@ -991,7 +996,7 @@ public:
       {
         // slight extra work here, mp3_index::quickMetadataRead will re-skip the ID3v2 tag, we could prime it with pos=fstart but meh that would require more changes
         mp3_index::mp3_metadata md;
-        if (mp3_index::quickMetadataRead(fn,fr,&md))
+        if (mp3_index::quickMetadataRead(fn,fr,&md, fr->GetSize() >= g_config_reapindex_minsize))
         {
           m_samplerate = md.srate;
           m_numchan = md.nch;
@@ -1088,8 +1093,12 @@ REAPER_PLUGIN_DLL_EXPORT int REAPER_PLUGIN_ENTRYPOINT(REAPER_PLUGIN_HINSTANCE hI
     *(void **)&gOnMallocFailPtr = rec->GetFunc("gOnMallocFail");
 
     if (!PeakGet_Create || !PeakBuild_CreateEx || !Resampler_Create || !format_timestr || !resolve_fn ||       
+        !get_ini_file ||
         !rec->Register)
           return 0;
+
+    g_config_reapindex_minsize = GetPrivateProfileInt("REAPER","reapindex_minsize",
+        g_config_reapindex_minsize,get_ini_file());
 
     IMPORT_LOCALIZE_RPLUG(rec)
 

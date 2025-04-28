@@ -720,6 +720,7 @@ typedef struct _REAPER_tempochg
 #define PCM_SOURCE_EXT_WANTOLDBEATSTYLE 0x80003
 #define PCM_SOURCE_EXT_GETNOTATIONSETTINGS 0x80004 // parm1=(int)what, (what==0) => parm2=(double*)keysigmap, parm3=(int*)keysigmapsize; (what==1) => parm2=(int*)display transpose semitones, (what==2) => parm2=(char*)clef1, parm3=(char*)clef2
 #define PCM_SOURCE_EXT_RELOADTRACKDATA 0x80005 // internal use
+#define PCM_SOURCE_EXT_GIVE_TRACK_HINT 0x8000A // alias of PCM_SINK_EXT_GIVE_TRACK_HINT
 #define PCM_SOURCE_EXT_WANT_TRIM 0x90001 // parm1=(int64*)total number of decoded samples after trimming, parm2=(int*)number of samples to trim from start, parm3=(int*)number of samples to trim from end
 #define PCM_SOURCE_EXT_WANTTRIM_DEPRECATED 0x90002 // no longer supported
 #define PCM_SOURCE_EXT_TRIMITEM 0x90003 // parm1=lrflag, parm2=double *{position,length,startoffs,rate}
@@ -882,6 +883,8 @@ class PCM_sink
 #define PCM_SINK_EXT_ADDCUE 0x80006 // parm1=(PCM_cue*)cue OR parm2=(double*)transient position
 #define PCM_SINK_EXT_SETCURBLOCKTIME 0x80007 // parm1 = (double *) project position -- called before each WriteDoubles etc
 #define PCM_SINK_EXT_IS_VIDEO 0x80008 // deprecated/unused
+#define PCM_SINK_EXT_IS_DUMMY 0x80009 // does not write a file to disk
+#define PCM_SINK_EXT_GIVE_TRACK_HINT 0x8000A // parm1 = MediaTrack*, parm3=PCM_source* (maybe)
 
 typedef struct _REAPER_pcmsink_register_t // register using "pcmsink"
 {

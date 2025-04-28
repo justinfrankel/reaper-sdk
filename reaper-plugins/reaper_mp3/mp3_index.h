@@ -15,6 +15,8 @@ protected:
     m_start_eatsamples=0;
     m_end_eatsamples=0; 
     m_encodingtag=-1;
+    m_cbr_base = 0;
+    m_cbr_frame_size = 0;
   }
   
 public:
@@ -27,9 +29,11 @@ public:
 
   bool has_file_open() const { return m_framefile != NULL; } // only signifies whether a file is open (file could be closed but index is valid)
 
+  bool IsCBR() const { return m_cbr_frame_size>0; }
+
   int GetFrameCount() 
   {
-    return m_framefile||m_numframes==m_frameposmemcache.GetSize()?m_numframes:0; 
+    return m_cbr_frame_size>0||m_framefile||m_numframes==m_frameposmemcache.GetSize()?m_numframes:0;
   }
   
   unsigned int GetStreamStart()
@@ -58,8 +62,8 @@ public:
     int srate, nch;
   };
 
-  static bool quickMetadataRead(const char *fn, WDL_FileRead *fr, mp3_metadata *metadata);
-  static mp3_index *indexFromFilename(const char *fn, WDL_FileRead *fr); // fr can be NULL (causing it to open file manually)
+  static bool quickMetadataRead(const char *fn, WDL_FileRead *fr, mp3_metadata *metadata, bool allow_index_file);
+  static mp3_index *indexFromFilename(const char *fn, WDL_FileRead *fr, bool allow_index_file);
   static void release_index(mp3_index *idx)
   {
     WDL_MutexLock lock(&indexMutex);
@@ -86,6 +90,10 @@ private:
       if (m_framefile->Read(buf,4) == 4)
         return buf[0] | (buf[1]<<8) | (buf[2]<<16) | (buf[3]<<24);        
     }
+    else if (m_cbr_frame_size > 0 && f >= 0 && f < m_numframes && WDL_NORMALLY(m_encodingtag==2))
+    {
+      return m_cbr_base + m_cbr_frame_size * f;
+    }
     else if (m_numframes==m_frameposmemcache.GetSize() && f>=0&&f<m_numframes) return m_frameposmemcache.Get()[f];
 
     return 0;
@@ -99,9 +107,11 @@ private:
   static int _sortfunc(const void *a, const void *b);
 
   int ReadFrameListFromCache(); // 0 if found
-  void BuildFrameList(WDL_FileRead *fr, mp3_metadata *quick_length_check);
+  void BuildFrameList(WDL_FileRead *fr, mp3_metadata *quick_length_check, bool allow_index_file);
   int m_numframes;
   int m_framestart;
+  unsigned int m_cbr_base;
+  int m_cbr_frame_size;
   WDL_FileRead *m_framefile;
 
   WDL_TypedQueue<unsigned int> m_frameposmemcache; // only used if !m_framefile, and then only if the mp3 is small enough

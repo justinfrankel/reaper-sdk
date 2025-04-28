@@ -16,8 +16,6 @@
 
 #include "mp3dec.h"
 
-#define MIN_SIZE_FOR_FILECACHE (12*1024*1024)
-
 #define WDL_WIN32_UTF8_NO_UI_IMPL
 #define WDL_WIN32_UTF8_IMPL static
 #include "../../WDL/win32_utf8.c"
@@ -35,9 +33,10 @@ static size_t FILE_WRITE_INT_LE(unsigned int value, WDL_FileWrite *hf)
 {
   unsigned char buf[4]={
     (unsigned char) (value&0xff),
-    (unsigned char) (value>>8)&0xff,
-    (unsigned char) (value>>16)&0xff,
-    (unsigned char) (value>>24)&0xff};
+    (unsigned char) ((value>>8)&0xff),
+    (unsigned char) ((value>>16)&0xff),
+    (unsigned char) ((value>>24)&0xff)
+  };
   return hf->Write(buf,sizeof(buf));
 }
 
@@ -52,7 +51,7 @@ int mp3_index::_sortfunc(const void *a, const void *b)
 
 
 WDL_PtrList<mp3_index> mp3_index::g_indexes;
-mp3_index *mp3_index::indexFromFilename(const char *fn, WDL_FileRead *fr)
+mp3_index *mp3_index::indexFromFilename(const char *fn, WDL_FileRead *fr, bool allow_index_file)
 {
   WDL_MutexLock lock(&indexMutex);
   mp3_index tmp(fn);
@@ -69,15 +68,10 @@ mp3_index *mp3_index::indexFromFilename(const char *fn, WDL_FileRead *fr)
   {
     t = new mp3_index(fn);
     // check for cached frame list
-    if ((fr && fr->GetSize()<MIN_SIZE_FOR_FILECACHE) ||
-          t->ReadFrameListFromCache())
+    if (!allow_index_file || t->ReadFrameListFromCache())
     {
-
-      WDL_FileRead *fpsrc = fr ? fr : new WDL_FileRead(fn,0,65536,4);
-
-      t->BuildFrameList(fpsrc, NULL);
-
-      if (fpsrc != fr) delete fpsrc;
+      if (WDL_NORMALLY(fr != NULL))
+        t->BuildFrameList(fr, NULL, allow_index_file);
     }
     t->m_refcnt++;
 
@@ -88,15 +82,13 @@ mp3_index *mp3_index::indexFromFilename(const char *fn, WDL_FileRead *fr)
   }
 }
 
-bool mp3_index::quickMetadataRead(const char *fn, WDL_FileRead *fr, mp3_metadata *metadata)
+bool mp3_index::quickMetadataRead(const char *fn, WDL_FileRead *fr, mp3_metadata *metadata, bool allow_index_file)
 {
-  if (!metadata) return false;
+  if (WDL_NOT_NORMALLY(!metadata) || WDL_NOT_NORMALLY(!fr)) return false;
   mp3_index tmp(fn);
 
-  WDL_FileRead *fpsrc = fr ? fr : new WDL_FileRead(fn,0,65536,4);
-  tmp.BuildFrameList(fpsrc,metadata);
+  tmp.BuildFrameList(fr,metadata,allow_index_file);
 
-  if (fpsrc != fr) delete fpsrc;
   return metadata->len > 0.0;
 }
 
@@ -110,8 +102,7 @@ int mp3_index::ReadFrameListFromCache() // 0 if found
   }
   else
   {
-    lstrcpyn(cfn, m_fn.Get(), sizeof(cfn)-32);
-    strcat(cfn, ".reapindex");
+    snprintf(cfn,sizeof(cfn),"%s.reapindex", m_fn.Get());
   }
   struct stat st={0}; 
   if (statUTF8(m_fn.Get(),&st)) return 1;
@@ -159,7 +150,7 @@ int mp3_index::ReadFrameListFromCache() // 0 if found
   return rv;
 }   
     
-void mp3_index::BuildFrameList(WDL_FileRead *fpsrc, mp3_metadata *quick_length_check)
+void mp3_index::BuildFrameList(WDL_FileRead *fpsrc, mp3_metadata *quick_length_check, bool allow_index_file)
 {
   m_start_eatsamples=0;
   m_end_eatsamples=0;
@@ -172,40 +163,6 @@ void mp3_index::BuildFrameList(WDL_FileRead *fpsrc, mp3_metadata *quick_length_c
   {
     quick_length_check->len = 0.0;
     quick_length_check->srate = quick_length_check->nch = 0;
-  }
-  else
-  {
-    char cfn[2048];
-    if (GetPeakFileNameEx2)
-    {
-      GetPeakFileNameEx2(m_fn.Get(), cfn, sizeof(cfn)-32, true, ".reapindex");
-    }
-    else
-    {
-      lstrcpyn(cfn, m_fn.Get(), sizeof(cfn)-32);
-      strcat(cfn, ".reapindex");
-    }
-
-    if (fpsrc->GetSize() >= MIN_SIZE_FOR_FILECACHE)
-    {
-      fpo = new WDL_FileWrite(cfn);
-      if (!fpo->IsOpen())
-      {
-        delete fpo;
-        fpo=NULL;
-      }
-    }
-  }
-
-  if (fpo)
-  {
-    struct stat st={0}; 
-    statUTF8(m_fn.Get(),&st);
-
-    fpo->Write("RIDX",4);
-    FILE_WRITE_INT_LE(st.st_mtime,fpo);
-    FILE_WRITE_INT_LE(st.st_size,fpo);
-    FILE_WRITE_INT_LE(0,fpo);
   }
 
   m_frameposmemcache.Clear();
@@ -302,10 +259,7 @@ void mp3_index::BuildFrameList(WDL_FileRead *fpsrc, mp3_metadata *quick_length_c
             rdbuf+=8;
             if (flags & 1)  // frames
             {
-              if (quick_length_check)
-              {
-                tag_frame_cnt = 1 + ((rdbuf[0]<<24)|(rdbuf[1]<<16)|(rdbuf[2]<<8)|rdbuf[3]);
-              }
+              tag_frame_cnt = 1 + ((rdbuf[0]<<24)|(rdbuf[1]<<16)|(rdbuf[2]<<8)|rdbuf[3]);
               rdbuf+=4;
             }
             if (flags & 2) { rdbuf+=4; } // bytes
@@ -357,7 +311,53 @@ void mp3_index::BuildFrameList(WDL_FileRead *fpsrc, mp3_metadata *quick_length_c
           return;
         }
 
+        if (m_encodingtag == 2 && tag_frame_cnt != 0
+#ifdef MAKE_INDEX_FOR_CBR
+            && !(MAKE_INDEX_FOR_CBR)
+#endif
+            )
+        {
+          const WDL_INT64 sizediff = (fpsrc->GetSize() - (fr.framesize+4)*tag_frame_cnt - byte_pos);
+          // if file is too small, or has more than 1k appended to end (128 bytes would be fine), manually index
+          if (sizediff >= 0 && sizediff <= 1024)
+          {
+            m_cbr_base = byte_pos;
+            m_cbr_frame_size = fr.framesize+4;
+            m_numframes = tag_frame_cnt;
+            return;
+          }
+        }
+
         firstframe=false;
+
+        if (WDL_NORMALLY(!fpo) && allow_index_file)
+        {
+          char cfn[2048];
+          if (GetPeakFileNameEx2)
+          {
+            GetPeakFileNameEx2(m_fn.Get(), cfn, sizeof(cfn)-32, true, ".reapindex");
+          }
+          else
+          {
+            snprintf(cfn,sizeof(cfn),"%s.reapindex", m_fn.Get());
+          }
+          fpo = new WDL_FileWrite(cfn);
+          if (!fpo->IsOpen())
+          {
+            delete fpo;
+            fpo=NULL;
+          }
+          else
+          {
+            struct stat st={0};
+            statUTF8(m_fn.Get(),&st);
+
+            fpo->Write("RIDX",4);
+            FILE_WRITE_INT_LE(st.st_mtime,fpo);
+            FILE_WRITE_INT_LE(st.st_size,fpo);
+            FILE_WRITE_INT_LE(0,fpo);
+          }
+        }
       }
 
       if (!fpo) m_frameposmemcache.Add(&byte_pos,1);
