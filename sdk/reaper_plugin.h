@@ -500,10 +500,15 @@ typedef struct _PCM_source_peaktransfer_t
   void *extra_requested_data;
 
   REAPER_PeakGet_Interface *__peakgetter;
+
+  int extra_requested_data_type2; // PEAKINFO_EXTRADATA_* for spectral information
+  int extra_requested_data_out2; // output: number of samples returned (== peaks_out if successful)
+  void *extra_requested_data2;
+
 #ifdef __LP64__
-  int *exp[27];
+  int *exp[25];
 #else
-  int *exp[26];
+  int *exp[23];
 #endif
 
   static inline int extra_blocksize(int extra_requested_data_type)
