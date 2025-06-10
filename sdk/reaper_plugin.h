@@ -535,7 +535,7 @@ typedef struct _PCM_source_peaktransfer_t
          // which must be combined to calculate total loudness. specifically,
          // the stored values are z(i) in formula 2 in this document:
          // https://www.itu.int/dms_pubrec/itu-r/rec/bs/R-REC-BS.1770-0-200607-S!!PDF-E.pdf
-    LOUDNESS_INTERNAL_BYTES=4, // REAPER internal use only
+    LOUDNESS_INTERNAL_BYTES=4, // REAPER internal use only, 4 byte LE float
   };
 
 } PCM_source_peaktransfer_t;
@@ -775,6 +775,8 @@ enum { RAWMIDI_NOTESONLY=1, RAWMIDI_UNFILTERED=2, RAWMIDI_CHANNELFILTER=3 }; // 
 #define PCM_SOURCE_EXT_SET_PREVIEW_POS_OVERRIDE 0xC0101 // parm1 = (double *)&tickpos, tickpos<0 for no override
 #define PCM_SOURCE_EXT_SET_PREVIEW_LOOPCNT 0xC0102 // parm1 = (INT64*)&decoding_loopcnt, valid only for the immediately following GetSamples(), only in track preview contexts, when not using buffering source
 
+#define PCM_SOURCE_EXT_SET_IGNTEMPO 0xC0105 // parm1 = REAPER_pcmsrc_igntempo_info*
+#define PCM_SOURCE_EXT_GET_IGNTEMPO 0xC0106 // parm1 = REAPER_pcmsrc_igntempo_info*
 
 // register with Register("pcmsrc",&struct ... and unregister with "-pcmsrc"
 typedef struct _REAPER_pcmsrc_register_t {
@@ -785,6 +787,14 @@ typedef struct _REAPER_pcmsrc_register_t {
   const char *(*EnumFileExtensions)(int i, const char **descptr); // call increasing i until returns a string, if descptr's output is NULL, use last description
 } pcmsrc_register_t;
 
+
+struct REAPER_pcmsrc_igntempo_info {
+  int enable_override;
+  int flags; // not currently used
+  double bpm;
+  int measure_len;
+  int denom;
+};
 
 /*
 ** OK so the pcm source class has a lot of responsibility, and people may not wish to

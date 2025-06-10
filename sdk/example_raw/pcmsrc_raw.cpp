@@ -299,7 +299,7 @@ REAPER_PLUGIN_DLL_EXPORT int REAPER_PLUGIN_ENTRYPOINT(REAPER_PLUGIN_HINSTANCE hI
   g_hInst=hInstance;
   if (rec)
   {
-    if (rec->caller_version != REAPER_PLUGIN_VERSION || !rec->GetFunc || !REAPERAPI_LoadAPI(rec->GetFunc))
+    if (rec->caller_version != REAPER_PLUGIN_VERSION || !rec->GetFunc || REAPERAPI_LoadAPI(rec->GetFunc))
       return 0;
 
     if (!rec->Register || 
