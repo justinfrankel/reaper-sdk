@@ -755,7 +755,7 @@ enum { RAWMIDI_NOTESONLY=1, RAWMIDI_UNFILTERED=2, RAWMIDI_CHANNELFILTER=3 }; // 
 #define PCM_SOURCE_EXT_GETGUID 0x90017 // parm1=(GUID*)guid
 #define PCM_SOURCE_EXT_DOPASTEINITEM 0x90100 // no parms used, acts as a paste from clipboard
 #define PCM_SOURCE_EXT_GETNOTERANGE 0x90018 // parm1=(int*)low note, parm2=(int*)high note
-#define PCM_SOURCE_EXT_PPQCONVERT 0x90020 // parm1=(double*)pos, parm2=(int)flag 0=ppq to proj time, 1=proj time to ppq
+#define PCM_SOURCE_EXT_PPQCONVERT 0x90020 // parm1=(double*)pos, parm2=(int)flag 0=ppq to proj time, 1=proj time to ppq, 2=start of measure, 3=end of measure, 4=query ppq
 #define PCM_SOURCE_EXT_COUNTMIDIEVTS 0x90021 // parm1=(int*)notecnt, parm2=(int*)ccevtcnt, parm3=(int*)metaevtcnt
 #define PCM_SOURCE_EXT_GETSETMIDIEVT 0x90022 // parm1=(MIDI_eventprops*)event properties (NULL to delete); parm2=(int)event index (<0 to insert); parm2=(int)flag: 1=index counts notes only, 2=index counts CC only, 3=index counts meta-events only
 #define PCM_SOURCE_EXT_GETSUGGESTEDTEXT 0x90023 // parm1=char ** which will receive pointer to suggested label text, if any
@@ -790,7 +790,7 @@ typedef struct _REAPER_pcmsrc_register_t {
 
 struct REAPER_pcmsrc_igntempo_info {
   int enable_override;
-  int flags; // not currently used
+  int flags; // if setting, &1 to reconform media (and if that set, &2 applies even if couldn't be reconformed)
   double bpm;
   int measure_len;
   int denom;
