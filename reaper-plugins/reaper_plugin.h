@@ -1519,7 +1519,7 @@ typedef struct _REAPER_reaper_csurf_reg_t
 
 #ifndef IS_MSG_VIRTKEY
   #ifdef _WIN32
-    #define IS_MSG_VIRTKEY(msg) ((msg)->message != WM_CHAR)
+    #define IS_MSG_VIRTKEY(msg) ((msg)->message != WM_CHAR && (msg)->message != WM_SYSCHAR)
   #else
     #define IS_MSG_VIRTKEY(msg) ((msg)->lParam&FVIRTKEY)
   #endif
