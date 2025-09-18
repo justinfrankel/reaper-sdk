@@ -305,6 +305,11 @@ typedef struct reaper_plugin_info_t
      }
      plugin_register("toolbar_icon_map", (void *)GetToolbarIconName);
 
+  accelerator:
+     Allows hooking the keyboard shortcut processing, see accelerator_register_t below
+       static accelerator_register_t accel = { ... };
+       plugin_register("accelerator",(void*)&accel);
+
   accel_section:
   action_help:
   custom_action:
@@ -314,7 +319,6 @@ typedef struct reaper_plugin_info_t
   projectimport:
   projectconfig:
   editor:
-  accelerator:
   csurf:
   csurf_inst:
   toggleaction:
