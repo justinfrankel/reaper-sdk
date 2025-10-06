@@ -1067,7 +1067,11 @@ static WDL_DLGRET dlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       else if (LOWORD(wParam) == IDC_BUTTON1 || LOWORD(wParam) == IDC_BUTTON2)
       {
         const char *dir=LOWORD(wParam) == IDC_BUTTON1 ? getUserWebRoot() : getDefaultWebRoot();
-        ShellExecute(hwndDlg, "open", dir, "", dir, SW_SHOW);
+        WDL_FastString fs;
+        fs.Set(dir);
+        fs.remove_trailing_dirchars();
+        fs.Append(WDL_DIRCHAR_STR);
+        ShellExecute(hwndDlg, "open", fs.Get(), "", fs.Get(), SW_SHOW);
       }
       else if (LOWORD(wParam) == 1144/*IDC_APPLY parent*/)
       {

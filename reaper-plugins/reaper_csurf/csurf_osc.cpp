@@ -4664,8 +4664,12 @@ static WDL_DLGRET dlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         else if (a == s_patterncfgs.GetSize()+2)
         {
+          WDL_FastString fs;
           const char* dir=GetOscCfgDir();
-          ShellExecute(hwndDlg, "open", dir, "", dir, SW_SHOW);
+          fs.Set(dir);
+          fs.remove_trailing_dirchars();
+          fs.Append(WDL_DIRCHAR_STR);
+          ShellExecute(hwndDlg, "open", fs.Get(), "", fs.Get(), SW_SHOW);
           SendMessage(hwndDlg, WM_USER+100, 0, 0);
         }
       }
