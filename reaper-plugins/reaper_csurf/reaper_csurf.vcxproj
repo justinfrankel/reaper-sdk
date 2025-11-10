@@ -339,6 +339,7 @@
     <ClCompile Include="..\..\WDL\jnetlib\listen.cpp" />
     <ClCompile Include="..\..\WDL\jnetlib\util.cpp" />
     <ClCompile Include="..\..\WDL\jnetlib\webserver.cpp" />
+    <ClCompile Include=".\csurf_console1.cpp" />
     <ClCompile Include=".\csurf_01X.cpp" />
     <ClCompile Include=".\csurf_alphatrack.cpp" />
     <ClCompile Include=".\csurf_babyhui.cpp" />

@@ -286,11 +286,7 @@ class POOLED_PCMSOURCE_CLASSNAME : public PCM_source
 
       if (pb)
       {
-        double peakres = REAPER_PEAKRES_MAX_NOPKS;
-        if (block->extra_requested_data && block->extra_requested_data_type == PEAKINFO_EXTRADATA_SPECTROGRAM1)
-          peakres = 40.0;
-        if (block->extra_requested_data2 && block->extra_requested_data_type2 == PEAKINFO_EXTRADATA_SPECTROGRAM1)
-          peakres = 40.0;
+        const double peakres = REAPER_PEAKRES_MAX_FOR_BLOCK(block,REAPER_PEAKRES_MAX_NOPKS);
         if (block->peakrate >= peakres)
         {
           if (!m_filepool->extraInfo->m_hiressrc && m_filename_ent)
@@ -327,12 +323,7 @@ class POOLED_PCMSOURCE_CLASSNAME : public PCM_source
 
       REAPER_PeakGet_Interface *pg = m_filepool->extraInfo->m_peakgetter;
 
-      double peakres=pg ? pg->GetMaxPeakRes() : REAPER_PEAKRES_MAX_NOPKS;
-
-      if (pg && block->extra_requested_data && block->extra_requested_data_type == PEAKINFO_EXTRADATA_SPECTROGRAM1)
-        peakres = 40.0;
-      if (pg && block->extra_requested_data2 && block->extra_requested_data_type2 == PEAKINFO_EXTRADATA_SPECTROGRAM1)
-        peakres = 40.0;
+      const double peakres=pg ? REAPER_PEAKRES_MAX_FOR_BLOCK(block,pg->GetMaxPeakRes()) : REAPER_PEAKRES_MAX_NOPKS;
 
       if (block->peakrate >= peakres*REAPER_PEAKRES_MUL_MAX)
       {

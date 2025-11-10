@@ -42,6 +42,8 @@ extern midi_Input *(*CreateMIDIInput)(int dev);
 extern midi_Output *(*CreateMIDIOutput)(int dev, bool streamMode, int *msoffset100); 
 extern bool (*GetMIDIOutputName)(int dev, char *nameout, int nameoutlen);
 extern bool (*GetMIDIInputName)(int dev, char *nameout, int nameoutlen);
+extern bool (*GetMIDIOutputNameNoAlias)(int dev, char *nameout, int nameoutlen);
+extern bool (*GetMIDIInputNameNoAlias)(int dev, char *nameout, int nameoutlen);
 
 extern void (*VkbStuffMessage)(MIDI_event_t *evt, bool wantCurChan);
 
@@ -116,6 +118,8 @@ extern void (*CSurf_OnTempoChange)(double bpm);
 // this func is called when a message is received from that surface
 extern void (*CSurf_OnOscControlMessage2)(const char* msg, const float* arg, const char *arg_str);
 
+extern MediaTrack *(*GetSelectedTrack2)(ReaProject *, int);
+
 extern double (*Master_GetPlayRate)(ReaProject*);
 extern double (*Master_NormalizePlayRate)(double playrate, bool isnormalized);
 extern double (*Master_GetTempo)();
@@ -181,6 +185,7 @@ extern double (*Track_GetPeakInfo)(MediaTrack *tr, int chidx);
 extern double (*Track_GetPeakHoldDB)(MediaTrack* tr, int chidx, bool clear);
 extern bool (*GetTrackUIVolPan)(MediaTrack *tr, double *vol, double *pan);
 extern bool (*GetTrackUIPan)(MediaTrack* tr, double* pan1, double* pan2, int* mode);
+extern bool (*GetTrackUIMute)(MediaTrack *tr, bool *mute);
 extern bool (*GetTrackSendUIVolPan)(MediaTrack* tr, int sendidx, double* vol, double* pan);
 extern bool (*GetTrackSendName)(MediaTrack* tr, int sendidx, char* buf, int buflen);
 extern bool (*GetTrackReceiveUIVolPan)(MediaTrack* tr, int recvidx, double* vol, double* pan);
@@ -253,6 +258,7 @@ extern char* (*WDL_ChooseFileForOpen)(HWND, const char*, const char*, const char
                                     );
 
 extern int (*GetNumTracks)();
+extern MediaTrack *(*GetMasterTrack)(void *);
 extern void (*format_timestr)(double, char *, int);
 extern void (*guidToString)(GUID *g, char *dest);
 extern void (*Undo_OnStateChangeEx)(const char *descchange, int whichStates, int trackparm);
@@ -284,6 +290,7 @@ extern int *g_config_zoommode;
 extern int* g_vu_minvol;
 extern int* g_vu_maxvol;
 extern int* g_config_vudecay;
+extern double *g_slider_maxvol;
 
 extern int __g_projectconfig_timemode2;
 extern int __g_projectconfig_timemode;

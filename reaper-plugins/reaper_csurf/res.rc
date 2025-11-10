@@ -182,6 +182,12 @@ BEGIN
     EDITTEXT        IDC_EDIT6,50,116,161,13,ES_AUTOHSCROLL | ES_READONLY
 END
 
+IDD_SURFACEEDIT_CONSOLE1 DIALOGEX 0, 0, 268, 95
+STYLE DS_SETFONT | DS_FIXEDSYS | DS_CONTROL | WS_CHILD
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //

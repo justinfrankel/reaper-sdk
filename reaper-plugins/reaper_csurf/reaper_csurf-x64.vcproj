@@ -742,6 +742,10 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath=".\csurf_console1.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\csurf_www.cpp"
 					>
 				</File>

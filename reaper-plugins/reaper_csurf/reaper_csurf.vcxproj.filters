@@ -56,6 +56,9 @@
     <ClCompile Include=".\csurf_faderport.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include=".\csurf_console1.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include=".\csurf_mcu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

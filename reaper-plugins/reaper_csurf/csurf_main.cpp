@@ -16,6 +16,7 @@
 
 extern reaper_csurf_reg_t 
   csurf_bcf_reg,
+  csurf_console1_reg,
   csurf_faderport_reg,
   csurf_faderport2_reg,
   csurf_hui_reg,
@@ -48,6 +49,8 @@ midi_Input *(*CreateMIDIInput)(int dev);
 midi_Output *(*CreateMIDIOutput)(int dev, bool streamMode, int *msoffset100); 
 bool (*GetMIDIOutputName)(int dev, char *nameout, int nameoutlen);
 bool (*GetMIDIInputName)(int dev, char *nameout, int nameoutlen);
+bool (*GetMIDIInputNameNoAlias)(int dev, char *nameout, int nameoutlen);
+bool (*GetMIDIOutputNameNoAlias)(int dev, char *nameout, int nameoutlen);
 
 void * (*projectconfig_var_addr)(void*proj, int idx);
 
@@ -56,6 +59,7 @@ void (*update_disk_counters)(int read, int write);
 int (*CSurf_TrackToID)(MediaTrack *track, bool mcpView);
 MediaTrack *(*CSurf_TrackFromID)(int idx, bool mcpView);
 int (*CSurf_NumTracks)(bool mcpView);
+MediaTrack *(*GetSelectedTrack2)(ReaProject *, int);
 
     // these will be called from app when something changes
 void (*CSurf_SetTrackListChange)();
@@ -168,6 +172,7 @@ void (*mkpanstr)(char *str, double pan);
 
 bool (*GetTrackUIVolPan)(MediaTrack *tr, double *vol, double *pan);
 bool (*GetTrackUIPan)(MediaTrack* tr, double* pan1, double* pan2, int* mode);
+bool (*GetTrackUIMute)(MediaTrack *tr, bool *mute);
 
 bool (*GetTrackSendUIVolPan)(MediaTrack *tr, int sendidx, double *vol, double *pan);
 bool (*GetTrackSendName)(MediaTrack* tr, int sendidx, char* buf, int buflen);
@@ -248,6 +253,7 @@ char* (*WDL_ChooseFileForOpen)(HWND, const char*, const char*, const char*, cons
 
 
 int (*GetNumTracks)();
+MediaTrack *(*GetMasterTrack)(void *);
 void (*format_timestr)(double, char *, int);
 void (*guidToString)(GUID *g, char *dest);
 void (*Undo_OnStateChangeEx)(const char *descchange, int whichStates, int trackparm);
@@ -283,6 +289,7 @@ int *g_config_zoommode;
 int* g_vu_minvol;
 int* g_vu_maxvol;
 int* g_config_vudecay;
+double *g_slider_maxvol;
 
 int __g_projectconfig_timemode2;
 int __g_projectconfig_timemode;
@@ -315,6 +322,8 @@ REAPER_PLUGIN_DLL_EXPORT int REAPER_PLUGIN_ENTRYPOINT(REAPER_PLUGIN_HINSTANCE hI
   IMPAPI(CreateMIDIOutput)
   IMPAPI(GetMIDIOutputName)
   IMPAPI(GetMIDIInputName)
+  IMPAPI(GetMIDIOutputNameNoAlias)
+  IMPAPI(GetMIDIInputNameNoAlias)
   IMPAPI(CSurf_TrackToID)
   IMPAPI(CSurf_TrackFromID)
   IMPAPI(CSurf_NumTracks)
@@ -405,11 +414,13 @@ REAPER_PLUGIN_DLL_EXPORT int REAPER_PLUGIN_ENTRYPOINT(REAPER_PLUGIN_HINSTANCE hI
   IMPAPI(SetProjectMarkerByIndex2)
   IMPAPI(AddProjectMarker2)
   IMPAPI(GetTrackUIVolPan)
+  IMPAPI(GetTrackUIMute)
   IMPAPI(GetTrackUIPan)
   IMPAPI(GetTrackSendUIVolPan)
   IMPAPI(GetTrackSendName)
   IMPAPI(GetTrackReceiveUIVolPan)
   IMPAPI(GetTrackReceiveName)
+  IMPAPI(GetSelectedTrack2)
   IMPAPI(GetSetRepeat)
   IMPAPI(GoToMarker)
   IMPAPI(GoToRegion)
@@ -482,6 +493,7 @@ REAPER_PLUGIN_DLL_EXPORT int REAPER_PLUGIN_ENTRYPOINT(REAPER_PLUGIN_HINSTANCE hI
   IMPAPI(WDL_ChooseDirectory)
 
   IMPAPI(GetNumTracks)
+  IMPAPI(GetMasterTrack)
   IMPAPI(format_timestr)
   IMPAPI(guidToString)
   IMPAPI(Undo_OnStateChangeEx)
@@ -523,6 +535,7 @@ REAPER_PLUGIN_DLL_EXPORT int REAPER_PLUGIN_ENTRYPOINT(REAPER_PLUGIN_HINSTANCE hI
   IMPVAR(g_vu_minvol, "vuminvol");
   IMPVAR(g_vu_maxvol, "vumaxvol");
   IMPVAR(g_config_vudecay, "vudecay");
+  IMPVAR(g_slider_maxvol,"slidermaxv");
 
   IMPVARP(__g_projectconfig_timemode,"projtimemode",int)
   IMPVARP(__g_projectconfig_timemode2,"projtimemode2",int)
@@ -544,11 +557,11 @@ REAPER_PLUGIN_DLL_EXPORT int REAPER_PLUGIN_ENTRYPOINT(REAPER_PLUGIN_HINSTANCE hI
   rec->Register("csurf",&csurf_mcu_reg);
   rec->Register("csurf",&csurf_mcuex_reg);
   rec->Register("csurf",&csurf_tranzport_reg);
+  rec->Register("csurf",&csurf_console1_reg);
   rec->Register("csurf",&csurf_alphatrack_reg);
   rec->Register("csurf",&csurf_01X_reg);
   rec->Register("csurf",&csurf_osc_reg);
   rec->Register("csurf",&csurf_www_reg);
-
 
   rec->Register("osclocalmsgfunc", (void*)OscLocalMessageToHost);
 

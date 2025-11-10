@@ -494,10 +494,13 @@ typedef struct _PCM_source_peaktransfer_t
 
 #define PEAKINFO_EXTRADATA_SPECTRAL1 ((int)'s')
 #define PEAKINFO_EXTRADATA_SPECTROGRAM1 ((int)'g')
+#define PEAKINFO_EXTRADATA_SPECTROGRAM2 ((int)'G')
 #define PEAKINFO_EXTRADATA_MIDITEXT ((int)'m')
 #define PEAKINFO_EXTRADATA_LOUDNESS_DEPRECATED ((int)'l') // use PEAKINFO_EXTRADATA_LOUDNESS_RAW instead
 #define PEAKINFO_EXTRADATA_LOUDNESS_RAW ((int)'r')
 #define PEAKINFO_EXTRADATA_LOUDNESS_INTERNAL ((int)'!')
+
+#define PEAKINFO_EXTRADATA_IS_ANY_SPECTROGRAM(x) ((x) == PEAKINFO_EXTRADATA_SPECTROGRAM1 || (x) == PEAKINFO_EXTRADATA_SPECTROGRAM2)
 
   int extra_requested_data_type; // PEAKINFO_EXTRADATA_* for spectral information
   int extra_requested_data_out; // output: number of samples returned (== peaks_out if successful)
@@ -521,6 +524,7 @@ typedef struct _PCM_source_peaktransfer_t
     {
       case PEAKINFO_EXTRADATA_SPECTRAL1: return SPECTRAL1_BYTES;
       case PEAKINFO_EXTRADATA_SPECTROGRAM1: return SPECTROGRAM1_BLOCKSIZE_BYTES;
+      case PEAKINFO_EXTRADATA_SPECTROGRAM2: return SPECTROGRAM2_BLOCKSIZE_BYTES;
       case PEAKINFO_EXTRADATA_MIDITEXT: return MIDITEXT_BYTES;
       case PEAKINFO_EXTRADATA_LOUDNESS_DEPRECATED: return LOUDNESS_DEPRECATED_BYTES;
       case PEAKINFO_EXTRADATA_LOUDNESS_RAW: return LOUDNESS_RAW_BYTES;
@@ -531,6 +535,8 @@ typedef struct _PCM_source_peaktransfer_t
 
   enum {
     SPECTROGRAM1_BLOCKSIZE_BYTES=128 * 3 / 2, // 128 bins, 12 bits each (MSB1, (LSN1<<4)|LSN2, MSB2)
+    SPECTROGRAM2_BLOCKSIZE_BYTES=1024 * 3 / 2, // 1024 bins, 12 bits each (MSB1, (LSN1<<4)|LSN2, MSB2) - not for peakfile use, probably
+    SPECTROGRAM_MAX_BLOCKSIZE_BYTES = SPECTROGRAM2_BLOCKSIZE_BYTES,
     SPECTRAL1_BYTES=4, // one LE int per channel per sample spectral info: low 15 bits frequency, next 14 bits density (16383=tonal, 0=noise, 12288 = a bit noisy)
     MIDITEXT_BYTES=1, // at most one character per pixel
     LOUDNESS_DEPRECATED_BYTES=4, // 4 byte LE integer: LUFS-M low 12 bits, LUFS-S next 12 bits, 0-3000 valid: ex: 0 means -150.0 LU (consider this -inf), 1500 means +0 LU - loudness values returned for each channel even if the calculation is for all channels combined
@@ -1036,6 +1042,12 @@ public:
 #define REAPER_PEAKRES_MUL_MIN 0.00001 // recommended for plug-ins, when 1000peaks/pix, toss hires source
 #define REAPER_PEAKRES_MUL_MAX 1.0 // recommended for plug-ins, when 1.5pix/peak, switch to hi res source. this may be configurable someday via some sneakiness
 
+#define REAPER_PEAKRES_MAX_FOR_BLOCK(block,def) \
+      ((((block)->extra_requested_data && (block)->extra_requested_data_type == PEAKINFO_EXTRADATA_SPECTROGRAM2) || \
+        ((block)->extra_requested_data2 && (block)->extra_requested_data_type2 == PEAKINFO_EXTRADATA_SPECTROGRAM2)) ? 0.0 : \
+       (((block)->extra_requested_data && (block)->extra_requested_data_type == PEAKINFO_EXTRADATA_SPECTROGRAM1) || \
+        ((block)->extra_requested_data2 && (block)->extra_requested_data_type2 == PEAKINFO_EXTRADATA_SPECTROGRAM1)) ? 40.0 : \
+         (def))
 
 #endif // __cplusplus
 
