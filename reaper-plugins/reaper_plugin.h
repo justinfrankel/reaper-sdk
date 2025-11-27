@@ -310,6 +310,11 @@ typedef struct reaper_plugin_info_t
        static accelerator_register_t accel = { ... };
        plugin_register("accelerator",(void*)&accel);
 
+  atexit:
+     Receive a notification that REAPER is about to quit (prior to main window being destroyed).
+       void on_exit(void) { }
+       plugin_register("atexit",(void*)on_exit);
+
   accel_section:
   action_help:
   custom_action:
