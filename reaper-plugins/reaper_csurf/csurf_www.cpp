@@ -606,6 +606,7 @@ public:
 
   virtual IPageGenerator *onConnection(JNL_HTTPServ *serv, int port)
   {
+    m_stats_reqcnt++;
     char buf[2048];
     serv->set_reply_header("Server:reaper_csurf_www/0.1");
 
@@ -630,6 +631,7 @@ public:
         serv->set_reply_string("HTTP/1.1 401 Unauthorized");
         serv->set_reply_size(0);
         serv->send_reply();
+        m_stats_autherr++;
         return 0;
       }
     }   
@@ -734,14 +736,60 @@ public:
       }
     }
 
+    m_stats_404err++;
     serv->set_reply_string("HTTP/1.1 404 NOT FOUND");
     serv->set_reply_size(0);
     serv->send_reply();
     return 0; // no data
   }
 
+  virtual void attachConnection(JNL_IConnection *con, int port)
+  {
+    m_stats_concnt++;
+    WebServerBaseClass::attachConnection(con,port);
+  }
+
   char userpass[256],def_file[128];
   WDL_PtrList<char> m_extra_headers;
+  time_t m_stats_start_time;
+  unsigned int m_stats_reqcnt, m_stats_404err, m_stats_autherr, m_stats_concnt;
+
+  void reset_stats()
+  {
+    m_stats_start_time = time(NULL);
+    m_stats_concnt = m_stats_reqcnt = m_stats_404err = m_stats_autherr = 0;
+  }
+  void get_status_string(WDL_FastString *fs)
+  {
+    time_t upt = time(NULL) - m_stats_start_time;
+    fs->AppendFormatted(512,
+        __LOCALIZE_VERFMT("up %02d:%02d:%02d","csurf_www"),
+          (int) (upt/3600),(int)((upt/60)%60), (int) (upt%60));
+    fs->Append("\r\n");
+    fs->AppendFormatted(512,
+        __LOCALIZE_VERFMT("requests: %u total from %u connections [%u 404, %u 401-auth]","csurf_www"),
+          m_stats_reqcnt, m_stats_concnt, m_stats_404err, m_stats_autherr);
+    fs->Append("\r\n");
+    fs->AppendFormatted(512,
+        __LOCALIZE_VERFMT("current: %u/%u connections, %u listeners","csurf_www"),
+          m_connections.GetSize(),m_max_con,m_listeners.GetSize());
+    fs->Append("\r\n");
+    for (int x = 0; x < m_connections.GetSize() && x < 5; x ++)
+    {
+      WS_conInst *wc = m_connections.Get(x);
+      if (wc)
+      {
+        fs->AppendFormatted(512,
+            __LOCALIZE_VERFMT("  %d) state=%d, idle time=%d, request count=%u","csurf_www"),
+              x+1,
+              wc->m_serv.get_state(),
+              (int)(time(NULL) - wc->m_connect_time),
+              wc->m_req_cnt);
+        fs->Append("\r\n");
+      }
+    }
+    fs->Append("\r\n");
+  }
 };
 
 void GetLocalIP(char* buf, int buflen);
@@ -763,6 +811,7 @@ public:
     m_rc_lastlocalip_validcnt = 0; 
 
     if (cfg) m_cfg.Set(cfg);
+    reset_stats();
 
     update_cfg(err);
   }
@@ -776,6 +825,7 @@ public:
     if (lp.gettoken_str(3)[0])
       snprintf(serv.def_file,sizeof(serv.def_file),"/%s",lp.gettoken_str(3));
 
+    serv.reset_stats();
     serv.removeListenIdx(0);
 
     if (m_enabled)
@@ -980,6 +1030,16 @@ public:
   time_t m_rc_nexttime;
 
   static WDL_PtrList<CSurf_WWW> s_list;
+
+  void reset_stats()
+  {
+    serv.reset_stats();
+  }
+  void get_status_string(WDL_FastString *fs)
+  {
+    if (m_rc_con) fs->Append("[requesting rc.reaper.fm...]\r\n");
+    serv.get_status_string(fs);
+  }
 };
 
 WDL_PtrList<CSurf_WWW> CSurf_WWW::s_list;
@@ -1054,6 +1114,14 @@ static WDL_DLGRET dlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 strncmp(buf,cs->m_rc_response,sizeof(cs->m_rc_response)-1))
               SetDlgItemText(hwndDlg,IDC_EDIT6,cs->m_rc_response);
           }
+          static WDL_FastString fs;
+          fs.Set(__LOCALIZE("Server status:\r\n","csurf_www"));
+          cs->get_status_string(&fs);
+          SetDlgItemText(hwndDlg,IDC_LISTEN_LBL,fs.Get());
+        }
+        else
+        {
+          SetDlgItemText(hwndDlg,IDC_LISTEN_LBL,__LOCALIZE("Server status: not running (click Apply)","csurf_www"));
         }
       }
     return 0;
