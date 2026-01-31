@@ -597,32 +597,28 @@ WDL_DLGRET wavecfgDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       SendDlgItemMessage(hwndDlg,IDC_MODE,CB_ADDSTRING,0,(LPARAM)__LOCALIZE("Constant bitrate  (CBR)","mp3dec_DLG_155"));
 
       WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg,IDC_COMBO1));
-      SendDlgItemMessage(hwndDlg,IDC_COMBO1,CB_ADDSTRING,0,(LPARAM)__LOCALIZE("Maximum q=0 (slow)","mp3dec_DLG_155"));
-      SendDlgItemMessage(hwndDlg,IDC_COMBO1,CB_ADDSTRING,0,(LPARAM)__LOCALIZE("Better q=2 (recommended)","mp3dec_DLG_155"));
-      SendDlgItemMessage(hwndDlg,IDC_COMBO1,CB_ADDSTRING,0,(LPARAM)__LOCALIZE("Normal q=3","mp3dec_DLG_155"));
-      SendDlgItemMessage(hwndDlg,IDC_COMBO1,CB_ADDSTRING,0,(LPARAM)__LOCALIZE("Fast encode q=5","mp3dec_DLG_155"));
-      SendDlgItemMessage(hwndDlg,IDC_COMBO1,CB_ADDSTRING,0,(LPARAM)__LOCALIZE("Faster encode q=7","mp3dec_DLG_155"));
-      SendDlgItemMessage(hwndDlg,IDC_COMBO1,CB_ADDSTRING,0,(LPARAM)__LOCALIZE("Fastest encode q=9","mp3dec_DLG_155"));
+      SendDlgItemMessage(hwndDlg,IDC_COMBO1,CB_ADDSTRING,0,(LPARAM)__LOCALIZE("q=0 (slowest encoding)","mp3dec_DLG_155"));
+      SendDlgItemMessage(hwndDlg,IDC_COMBO1,CB_ADDSTRING,0,(LPARAM)__LOCALIZE("q=1","mp3dec_DLG_155"));
+      SendDlgItemMessage(hwndDlg,IDC_COMBO1,CB_ADDSTRING,0,(LPARAM)__LOCALIZE("q=2 (default)","mp3dec_DLG_155"));
+      SendDlgItemMessage(hwndDlg,IDC_COMBO1,CB_ADDSTRING,0,(LPARAM)__LOCALIZE("q=3","mp3dec_DLG_155"));
+      SendDlgItemMessage(hwndDlg,IDC_COMBO1,CB_ADDSTRING,0,(LPARAM)__LOCALIZE("q=4","mp3dec_DLG_155"));
+      SendDlgItemMessage(hwndDlg,IDC_COMBO1,CB_ADDSTRING,0,(LPARAM)__LOCALIZE("q=5","mp3dec_DLG_155"));
+      SendDlgItemMessage(hwndDlg,IDC_COMBO1,CB_ADDSTRING,0,(LPARAM)__LOCALIZE("q=6","mp3dec_DLG_155"));
+      SendDlgItemMessage(hwndDlg,IDC_COMBO1,CB_ADDSTRING,0,(LPARAM)__LOCALIZE("q=7","mp3dec_DLG_155"));
+      SendDlgItemMessage(hwndDlg,IDC_COMBO1,CB_ADDSTRING,0,(LPARAM)__LOCALIZE("q=8","mp3dec_DLG_155"));
+      SendDlgItemMessage(hwndDlg,IDC_COMBO1,CB_ADDSTRING,0,(LPARAM)__LOCALIZE("q=9 (fastest encoding)","mp3dec_DLG_155"));
 
       if ((stereomode&STEREO_JSMASK) == DISABLE_JOINT_STEREO)
         CheckDlgButton(hwndDlg,IDC_STEREO_MODE,BST_CHECKED);
       if ((stereomode&STEREO_REPLAY_GAIN_MASK) == ENABLE_REPLAY_GAIN)
         CheckDlgButton(hwndDlg,IDC_REPLAY_GAIN,BST_CHECKED);
 
-      int idx = 1;
-      if (quality == 10) idx=1; // default to better if last was maximum bitrate/quality
-      else if (quality < 2 || quality > 10) idx=0;
-      else if (quality < 3) idx=1;
-      else if (quality < 5) idx=2;
-      else if (quality < 7) idx=3;
-      else if (quality < 9) idx=4;
-      else idx=5;
-      SendDlgItemMessage(hwndDlg,IDC_COMBO1,CB_SETCURSEL,idx,0);
+      if (quality < 0 || quality > 9) quality = 2; // default if last was maximum bitrate/quality
+      SendDlgItemMessage(hwndDlg, IDC_COMBO1, CB_SETCURSEL, quality, 0);
       
       WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg,IDC_BITRATE));
-      int i;
       char buf[256];
-      for (i = 0; i < s_numbitrates; ++i)
+      for (int i = 0; i < s_numbitrates; ++i)
       {         
         sprintf(buf, "%d", s_bitrates[i]);
         strcat(buf," ");
@@ -631,7 +627,7 @@ WDL_DLGRET wavecfgDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
 
       WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg,IDC_QUALITY));
-      for (i = 10; i <= 100; i += 10)
+      for (int i = 10; i <= 100; i += 10)
       {
         sprintf(buf, "%d", i);
         if (i == 10)
@@ -744,13 +740,8 @@ WDL_DLGRET wavecfgDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         else
         {
-          int a = (int) SendDlgItemMessage(hwndDlg,IDC_COMBO1,CB_GETCURSEL,0,0);
-          if (a == 0) quality=0;
-          else if (a==1) quality=2;
-          else if (a==2) quality=3;
-          else if (a==3) quality=5;
-          else if (a==4) quality=7;
-          else if (a==5) quality=9;
+          quality = (int)SendDlgItemMessage(hwndDlg, IDC_COMBO1, CB_GETCURSEL, 0, 0);
+          if (quality < 0 || quality > 9) quality=2;
 
           if (IsDlgButtonChecked(hwndDlg,IDC_STEREO_MODE)) 
             stereomode = DISABLE_JOINT_STEREO;
