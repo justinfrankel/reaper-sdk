@@ -715,7 +715,7 @@ public:
         }
         else if (m_alphatrack_nfingers&1) //zoom
         {
-          int zm = (*g_config_zoommode >= HZOOM_MOUSECUR ? HZOOM_EDITPLAYCUR : *g_config_zoommode);
+          int zm = (*g_config_zoommode == HZOOM_MOUSECUR ? HZOOM_EDITPLAYCUR : *g_config_zoommode);
           adjustZoom(((m_alphatrack_fingerposcenter-m_alphatrack_fingerpos) * (int)(now-m_frameupd_lastrun2))/-3000.0,0,true,zm);
           //
         }
