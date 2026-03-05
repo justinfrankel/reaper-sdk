@@ -133,7 +133,7 @@ class PCM_sink_mp3lame : public PCM_sink
           m_vbrmax=REAPER_MAKELEINT(((int *)(((unsigned char *)cfgdata)+4))[5]);
           m_abr=REAPER_MAKELEINT(((int *)(((unsigned char *)cfgdata)+4))[6]);
         }
-        if (m_quality >= 10) m_quality=0;
+        if (m_quality >= 10) m_quality=2;
         else if (m_quality<0) m_quality=2;
 
         m_resampler_srate_in=0;
@@ -613,8 +613,9 @@ WDL_DLGRET wavecfgDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if ((stereomode&STEREO_REPLAY_GAIN_MASK) == ENABLE_REPLAY_GAIN)
         CheckDlgButton(hwndDlg,IDC_REPLAY_GAIN,BST_CHECKED);
 
-      if (quality < 0 || quality > 9) quality = 2; // default if last was maximum bitrate/quality
-      SendDlgItemMessage(hwndDlg, IDC_COMBO1, CB_SETCURSEL, quality, 0);
+      int use_q = quality;
+      if (quality < 0 || quality > 9) use_q = 2; // default if last was maximum bitrate/quality
+      SendDlgItemMessage(hwndDlg, IDC_COMBO1, CB_SETCURSEL, use_q, 0);
       
       WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg,IDC_BITRATE));
       char buf[256];
