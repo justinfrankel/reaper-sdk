@@ -213,6 +213,7 @@ bool (*TrackFX_EndParamEdit)(MediaTrack *tr, int fx, int param);
 bool (*TrackFX_GetParamName)(MediaTrack *tr, int fx, int param, char *buf, int buflen);
 bool (*TrackFX_GetFormattedParamValue)(MediaTrack *tr, int fx, int param, char *buf, int buflen);
 int (*TrackFX_GetParamFromIdent)(MediaTrack *tr, int fx, const char *buf);
+int (*TrackFX_AddByName)(MediaTrack*,const char*,bool,int);
 
 double (*TrackFX_GetParamNormalized)(MediaTrack* track, int fx, int param);
 bool (*TrackFX_SetParamNormalized)(MediaTrack* track, int fx, int param, double value);
@@ -458,6 +459,7 @@ REAPER_PLUGIN_DLL_EXPORT int REAPER_PLUGIN_ENTRYPOINT(REAPER_PLUGIN_HINSTANCE hI
   IMPAPI(TrackFX_GetParamName)
   IMPAPI(TrackFX_GetFormattedParamValue)
   IMPAPI(TrackFX_GetParamFromIdent)
+  IMPAPI(TrackFX_AddByName)
 
   IMPAPI(TrackFX_GetParamNormalized)
   IMPAPI(TrackFX_SetParamNormalized)

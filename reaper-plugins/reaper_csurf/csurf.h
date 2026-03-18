@@ -214,6 +214,7 @@ extern bool (*TrackFX_GetFXName)(MediaTrack *tr, int fx, char *buf, int buflen);
 extern bool (*TrackFX_NavigatePresets)(MediaTrack* tr, int fx, int chg);
 extern bool (*TrackFX_GetPreset)(MediaTrack* tr, int fx, char* buf, int buflen);
 extern bool (*TrackFX_SetPreset)(MediaTrack* tr, int fx, const char* buf);
+extern int (*TrackFX_AddByName)(MediaTrack*,const char*,bool,int);
 
 extern double (*TrackFX_GetParamNormalized)(MediaTrack* track, int fx, int param);
 extern bool (*TrackFX_SetParamNormalized)(MediaTrack* track, int fx, int param, double value);
