@@ -172,6 +172,42 @@ static void getProjectExtState(const char *sec, const char *nm, WDL_FastString *
   o->Append("\n");
 }
 
+struct touch_state {
+  MediaTrack *tr;
+  int w;
+  DWORD at;
+};
+
+#define TOUCH_EXPIRE 8000
+static WDL_TypedBuf<touch_state> s_touch_states;
+static void manageTouchMessage(int w, const char *str, MediaTrack *tr)
+{
+  const char *ep = str;
+  while (*ep) ep++;
+  ep--;
+  while (ep > str && *ep == 'g') ep--; // gang must go last
+  bool end = ep >= str && (*ep == 'e' || *ep == 'E');
+
+  const DWORD now = GetTickCount();
+  for (int x = 0; x < s_touch_states.GetSize(); x ++)
+  {
+    if (s_touch_states.Get()[x].w == w && s_touch_states.Get()[x].tr == tr)
+    {
+      if (end) s_touch_states.Delete(x--);
+      else s_touch_states.Get()[x].at = now;
+      end = true;
+    }
+    else if ((now - s_touch_states.Get()[x].at) > TOUCH_EXPIRE)
+      s_touch_states.Delete(x--);
+  }
+
+  if (!end)
+  {
+    touch_state s = { tr, w, now };
+    s_touch_states.Add(s);
+  }
+}
+
 static void ProcessCommand(WDL_FastString *o, const char *in, int inlen)
 {
   char want[1024];
@@ -229,12 +265,14 @@ static void ProcessCommand(WDL_FastString *o, const char *in, int inlen)
 
           if (!strcmp(nm,"VOL")) 
           {
+            manageTouchMessage(0, p, tr);
             CSurf_SetSurfaceVolume(tr, CSurf_OnVolumeChangeEx(tr,flexi_atof(p),p[0]=='-'||p[0]=='+',p[strlen(p)-1]!='g'), NULL);
           }
           else if (!strcmp(nm,"PAN")) 
           {
             bool rel=false;
             if (p[0] == '+') { p++; rel=true; }
+            manageTouchMessage(1, p, tr);
             CSurf_SetSurfacePan(tr, CSurf_OnPanChangeEx(tr,flexi_atof(p),rel,p[strlen(p)-1]!='g'), NULL);
           }
           else if (!strcmp(nm,"WIDTH")) 
@@ -242,6 +280,7 @@ static void ProcessCommand(WDL_FastString *o, const char *in, int inlen)
             bool rel=false;
             if (p[0] == '+') { p++; rel=true; }
             // does not exist yet:    CSurf_SetSurfaceWidth(tr, , NULL);
+            manageTouchMessage(2, p, tr);
             CSurf_OnWidthChangeEx(tr,flexi_atof(p),rel,p[strlen(p)-1]!='g');
           }
           else if (!strcmp(nm,"MUTE")) CSurf_SetSurfaceMute(tr,CSurf_OnMuteChange(tr,atoi(p)),NULL);
@@ -1015,6 +1054,27 @@ public:
       }
     }
   }
+
+  virtual bool GetTouchState(MediaTrack *trackid, int isPan=0)
+  {
+    const DWORD now = GetTickCount();
+    bool ret = false;
+    for (int x = 0; x < s_touch_states.GetSize(); x ++)
+    {
+      if ((now - s_touch_states.Get()[x].at) > TOUCH_EXPIRE)
+        s_touch_states.Delete(x--);
+      else if (s_touch_states.Get()[x].w == isPan && s_touch_states.Get()[x].tr == trackid)
+        ret = true;
+    }
+    return ret;
+  }
+
+  virtual int Extended(int call, void *parm1, void *parm2, void *parm3)
+  {
+    if (call == CSURF_EXT_SUPPORTS_EXTENDED_TOUCH) return 1;
+    return 0;
+  }
+
   wwwServer serv;
   bool m_enabled;
   WDL_FastString m_cfg;
