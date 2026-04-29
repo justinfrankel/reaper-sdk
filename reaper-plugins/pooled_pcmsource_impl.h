@@ -441,27 +441,6 @@ class POOLED_PCMSOURCE_CLASSNAME : public PCM_source
 #endif
     } // called when done
 
-
-#define PCM_SOURCE_EXT_GETINFOSTRING_HANDLER \
-  if (call == PCM_SOURCE_EXT_GETINFOSTRING && parm1 && parm2) \
-  { \
-    WDL_FastString s; GetPropsStr(s); \
-    lstrcpyn((char*)parm1, s.Get(), (int)(INT_PTR)parm2); \
-    return s.GetLength() ? 1 : 0; \
-  }
-
-#define PCM_SOURCE_EXT_GETMETADATA_HANDLER(metadata) \
-  if (call == PCM_SOURCE_EXT_GETMETADATA && parm1 && parm2 && parm3) \
-  { \
-    HandleMexMetadataRequest((const char*)parm1, (char*)parm2, (int)(INT_PTR)parm3, (metadata)); \
-    return strlen((char*)parm2); \
-  } \
-  if (call == PCM_SOURCE_EXT_ENUMMETADATA && parm2 && parm3) \
-  { \
-    const char *k, *v=(metadata)->Enumerate((int)(INT_PTR)parm1, &k); if (!v) return 0; \
-    *(const char**)parm2=k; *(const char**)parm3=v; return 1; \
-  }
-
     int Extended(int call, void *parm1, void *parm2, void *parm3) 
     { 
       if (call == PCM_SOURCE_EXT_ENDPLAYNOTIFY)
@@ -742,13 +721,42 @@ static int pooled_pcm_source_garbage_collect(int flags)
   }
 
 #define POOLED_GETSAMPLES_ON_SEEK(tpos, msrate) \
+        tpos=(INT64)floor(block->time_s * msrate + 0.5); \
         if (do_resample) { \
           if (poolreadinst->m_resampler) poolreadinst->m_resampler->Reset(); \
           if (do_resample == 2) { \
             do_resample = 0; \
             poolreadinst->m_resampler_state = 2; \
-            tpos=(INT64)floor(block->time_s * msrate + 0.5); \
-          } else { \
-            tpos=(INT64)floor(block->time_s * msrate); /* this should probably be +0.5, but a35f321 bleh */ \
           } \
         }
+
+#ifdef _DEBUG
+#define POOLED_PCM_SOURCE_WARNSEEK(a,b) \
+    do { const INT64 seekdiff = (a) - (b); \
+         if (seekdiff > -1000 && seekdiff < 1000) \
+          wdl_log("%s:%d: small seek of %d samples, if there is no reason for this in the project, take a look.\n", \
+              __FILE__, __LINE__, (int)seekdiff); \
+        } while(0)
+#else
+#define POOLED_PCM_SOURCE_WARNSEEK(a,b) do { } while(0)
+#endif
+
+#define PCM_SOURCE_EXT_GETINFOSTRING_HANDLER \
+  if (call == PCM_SOURCE_EXT_GETINFOSTRING && parm1 && parm2) \
+  { \
+    WDL_FastString s; GetPropsStr(s); \
+    lstrcpyn((char*)parm1, s.Get(), (int)(INT_PTR)parm2); \
+    return s.GetLength() ? 1 : 0; \
+  }
+
+#define PCM_SOURCE_EXT_GETMETADATA_HANDLER(metadata) \
+  if (call == PCM_SOURCE_EXT_GETMETADATA && parm1 && parm2 && parm3) \
+  { \
+    HandleMexMetadataRequest((const char*)parm1, (char*)parm2, (int)(INT_PTR)parm3, (metadata)); \
+    return strlen((char*)parm2); \
+  } \
+  if (call == PCM_SOURCE_EXT_ENUMMETADATA && parm2 && parm3) \
+  { \
+    const char *k, *v=(metadata)->Enumerate((int)(INT_PTR)parm1, &k); if (!v) return 0; \
+    *(const char**)parm2=k; *(const char**)parm3=v; return 1; \
+  }

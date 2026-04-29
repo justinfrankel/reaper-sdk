@@ -172,7 +172,8 @@ public:
 
   double GetPreferredPosition()
   {
-    return ReadMetadataPrefPos(&m_metadata, (double)m_srate);
+    double prefpos;
+    return ReadMetadataPrefPos(&m_metadata, m_srate, &prefpos) ? prefpos : -1.0;
   }
 
   int GetBitsPerSample() { return 16; }
@@ -489,10 +490,12 @@ void PCM_source_mp3::PooledGetSamples(PCM_source_transfer_t *block, PooledDecode
 
   if (block->absolute_time_s==-100000.0) poolreadinst->m_lastpos=-100000;
 
-  if (fabs(poolreadinst->m_lastpos - (block->time_s+lat)*decsr) >= 8.0)
+  INT64 splpos = (INT64) floor((block->time_s+lat)*decsr + 0.5);
+  if (poolreadinst->m_lastpos != splpos)
   {
+    POOLED_PCM_SOURCE_WARNSEEK(splpos, poolreadinst->m_lastpos);
+
     mp3_index *mindex = m_filepool->extraInfo->m_index;
-    INT64 splpos = (INT64) (block->time_s * decsr + 0.5);
 
     POOLED_GETSAMPLES_ON_SEEK(splpos, decsr)
 
@@ -1031,7 +1034,8 @@ public:
 
   virtual double GetPreferredPosition()
   {
-    return ReadMetadataPrefPos(&m_metadata, (double)m_samplerate);
+    double prefpos;
+    return ReadMetadataPrefPos(&m_metadata, m_samplerate, &prefpos) ? prefpos : -1.0;
   }
 
   virtual int Extended(int call, void *parm1, void *parm2, void *parm3)
