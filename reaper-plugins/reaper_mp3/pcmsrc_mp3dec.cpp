@@ -529,7 +529,7 @@ void PCM_source_mp3::PooledGetSamples(PCM_source_transfer_t *block, PooledDecode
     poolreadinst->m_file->SetPosition(poolreadinst->m_read_pos);
 
     poolreadinst->m_decoder.Reset(false);
-    poolreadinst->m_lastpos=(INT64) (block->time_s*decsr);
+    poolreadinst->m_lastpos=splpos;
     lat=0.0;
   }
 

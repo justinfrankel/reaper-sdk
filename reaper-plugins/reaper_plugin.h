@@ -626,7 +626,14 @@ typedef struct _REAPER_cue
   double m_endtime;
   bool m_isregion;
   char *m_name; // can be NULL if unnamed
-  int m_flags; // &1:DEPRECATED caller must call Extended(PCM_SOURCE_EXT_ENUMCUES, -1, &cue, 0) when finished, &2:time is QN, &0x10000:write cue regardless of sink settings, &4:is chapter, &(8|16)=8:has low confidence cue name, &(8|16)=16:has medium confidence cue name, &(8|16)=24:has high confidence cue name
+  int m_flags; // &1:DEPRECATED caller must call Extended(PCM_SOURCE_EXT_ENUMCUES, -1, &cue, 0) when finished
+               // &2:time is QN
+               // &0x10000:write cue regardless of sink settings
+               // &4:is chapter
+               // &(8|16)=8:has low confidence cue name
+               // &(8|16)=16:has medium confidence cue name
+               // &(8|16)=24:has high confidence cue name
+               // &32:is hidden
   char resvd[124]; // future expansion -- should be 0
 } REAPER_cue;
 
