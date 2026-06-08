@@ -594,6 +594,9 @@ static void encode_relmode1_extended(double d, int *val, int *valhw)
   *valhw = -1-wdl_min(z,255);
 }
 
+static const char* eq_bandstr[6] = { "_HIPASS", "_LOSHELF", "_BAND", "_NOTCH", "_HISHELF", "_LOPASS" };
+static const char* eq_parmtypestr[3] = { "_FREQ", "_GAIN", "_Q" };
+
 class CSurf_Osc : public IReaperControlSurface
 {
 public:
@@ -887,7 +890,7 @@ public:
         if (strstarts(key, "FX_PARAM_VALUE")) fx_feedback_wc=3;
         else if (!strcmp(key, "FX_WETDRY")) fx_feedback_wc=2;
         else if (strstarts(key, "FX_INST_")) fx_feedback_wc=2;
-        else if (strstarts(key, "FX_EQ_")) fx_feedback_wc=2;
+        else if (strstarts(key, "FX_EQ_")) fx_feedback_wc = strstr(key,"_BAND") ? 2 : 1;
       }
       
       if (skipdef && lp.getnumtokens() < 3) continue;
@@ -916,7 +919,7 @@ public:
         if (fx_feedback_wc && CountWildcards(pattern) >= fx_feedback_wc)
         {
           if (strstarts(key, "FX_INST_PARAM_VALUE")) m_wantfx |= 16;
-          else if (strstarts(key, "FX_EQ_")) m_wantfx |= 32;
+          else if (strstarts(key, "FX_EQ_")) m_wantfx |= 64;
           else m_wantfx |= 8;
         }
       }
@@ -3257,6 +3260,12 @@ public:
         }
       }
     }
+
+    if (tr && (m_wantfx&64))
+    {
+      int wc[1] = {  tidx-m_curbankstart };
+      SetFXEQChange(tr, wc, 1);
+    }
   }
 
   // track order or current bank changed
@@ -3344,16 +3353,14 @@ public:
     UpdateSurfaceTrack(m_curtrack);
     SetActiveFXChange();
     SetActiveFXInstChange();
-    SetActiveFXEQChange();
+    SetFXEQChange(CSurf_TrackFromID(m_curtrack, !!(m_followflag&8)), NULL, 0);
   }
 
-  void SetActiveFXEQChange()
+  void SetFXEQChange(MediaTrack *tr, const int *wc, int wccnt)
   {
     if (osc_send_inactive()) return;
 
     int fxidx=-1;
-
-    MediaTrack* tr=CSurf_TrackFromID(m_curtrack, !!(m_followflag&8));
     if (tr) fxidx=TrackFX_GetEQ(tr, false);
 
     char buf[512];
@@ -3366,66 +3373,75 @@ public:
       open=TrackFX_GetOpen(tr, fxidx);
       TrackFX_GetPreset(tr, fxidx, buf, sizeof(buf));
     }
-    SETSURFSTR("FX_EQ_PRESET", buf);
-    SETSURFBOOL("FX_EQ_BYPASS", en);
-    SETSURFBOOL("FX_EQ_OPEN_UI", open);
+    SETSURFSTRWC("FX_EQ_PRESET", wc, wccnt, buf);
+    SETSURFBOOLWC("FX_EQ_BYPASS", wc, wccnt, en);
+    SETSURFBOOLWC("FX_EQ_OPEN_UI", wc, wccnt, open);
 
-    static const char* bandstr[6] = { "_HIPASS", "_LOSHELF", "_BAND", "_NOTCH", "_HISHELF", "_LOPASS" };
-    static const char* parmtypestr[3] = { "_FREQ", "_GAIN", "_Q" };
     static double defval[3] = { 0.0, 0.5, 0.5 };
     static const char* defstr[3] = { "0Hz", "0dB", "1.0" };
 
+    char senttab[(6+8)*3]; // 6x3 for bandtype*parmtype, plus 8*3 for band1-8 * parmtype
+    memset(senttab,0,sizeof(senttab));
+
+    if (tr && fxidx>=0)
+    {
+      const int np = TrackFX_GetNumParams(tr,fxidx);
+      for (int i = 0; i < np; i ++)
+      {
+        char buf[512];
+        buf[0]=0;
+        double val = TrackFX_GetParamNormalized(tr, fxidx, i);
+        TrackFX_GetFormattedParamValue(tr, fxidx, i, buf, sizeof(buf));
+        if (!buf[0]) snprintf(buf, sizeof(buf),"%.3f", val);
+
+        const int sent = SendEQParamMessage(tr,fxidx,i,wccnt>0 ? wc[0] : 0,
+            wccnt==0 || (wc && wccnt >0  && wc[0] == m_curtrack - m_curbankstart),
+            wccnt>0,val,buf);
+
+        if (sent >= 0 && sent < sizeof(senttab))
+          senttab[sent] = 1;
+      }
+    }
     int i, j, k;
     for (i=0; i < 6; ++i)
     {
       bool isband = (i == 2);
 
-      for (j=0; j < 3; ++j)
-      {
-        char pattern[512];
-        strcpy(pattern, "FX_EQ");
-        strcat(pattern, bandstr[i]);
-        strcat(pattern, parmtypestr[j]);
-        for (k=0; k < (isband ? 8 : 1); ++k)
-        {
-          int wc[1] = { k };
-          SetSurfaceVal(pattern, (isband ? wc : 0), (isband ? 1 : 0), 0, 0, &defval[j], defstr[j]);
-        }
-      }
-
       for (k=0; k < (isband ? 8 : 1); ++k)
       {
+        for (j=0; j < 3; ++j)
+        {
+          char pattern[512];
+          snprintf(pattern,sizeof(pattern),"FX_EQ%s%s",eq_bandstr[i],eq_parmtypestr[j]);
+          if (!senttab[(isband?(6+k):i)*3+j])
+          {
+            int wc2[32] = { k }, wccnt2 = 1;
+            for (; wccnt2-1 < wccnt && WDL_NORMALLY(wccnt2<32); wccnt2++)
+              wc2[wccnt2] = wc[wccnt2-1];
+            // send defaults
+            SetSurfaceVal(pattern, (isband ? wc2 : wc), (isband ? wccnt2 : wccnt), 0, 0, &defval[j], defstr[j]);
+          }
+        }
+
         if (tr && fxidx >= 0)
         {
           bool band_en=TrackFX_GetEQBandEnabled(tr, fxidx, i, k);
           
           char pattern[512];
-          strcpy(pattern, "FX_EQ");
-          strcat(pattern, bandstr[i]);
-          strcat(pattern, "_BYPASS");
+          snprintf(pattern,sizeof(pattern),"FX_EQ%s_BYPASS",eq_bandstr[i]);
           
-          int wc[1] = { k };
+          int wc2[32] = { k }, wccnt2 = 1;
+          for (; wccnt2-1 < wccnt && WDL_NORMALLY(wccnt2<32); wccnt2++)
+            wc2[wccnt2] = wc[wccnt2-1];
           if (isband) 
           {
-            SETSURFBOOLWC(pattern, wc, 1, band_en);
+            SETSURFBOOLWC(pattern, wc2, wccnt2, band_en);
           }
           else 
           {
-            SETSURFBOOL(pattern, band_en);
+            SETSURFBOOLWC(pattern, wc, wccnt, band_en);
           }
         }
-      }
-    }
-
-    if (tr && fxidx >= 0)
-    {
-      int numparms=TrackFX_GetNumParams(tr, fxidx);           
-      int i;
-      for (i=0; i < numparms; ++i)
-      {
-        double val=TrackFX_GetParamNormalized(tr, fxidx, i);
-        int f=(fxidx<<16)|i;
-        Extended(FX_IDX_MODE(fxidx) == FX_IDX_MODE_REC ? CSURF_EXT_SETFXPARAM_RECFX : CSURF_EXT_SETFXPARAM, tr, &f, &val);
       }
     }
   }
@@ -3806,6 +3822,36 @@ public:
     SETSURFBOOL("STOP", !play);
     SETSURFBOOL("PAUSE",  pause);
     SETSURFBOOL("PLAY", play);
+  }
+
+  // returns bandtype*3+parmtype
+  int SendEQParamMessage(MediaTrack *tr, int fxidx, int parmidx, int tridx, bool iscureq,
+      bool isbanktrackeq, double val, const char *valstr)
+  {
+    int bandtype=-1;
+    int bandidx=0;
+    int parmtype=-1;
+    if (TrackFX_GetEQParam(tr, fxidx, parmidx, &bandtype, &bandidx, &parmtype, 0) && bandtype >= 0)
+    {
+      char pattern[512];
+
+      if (bandtype < 0 || bandtype >= 6) bandtype=2;
+      bool isband = (bandtype == 2);
+
+      if (parmtype < 0 || parmtype >= 3) parmtype=0;
+
+      snprintf(pattern,sizeof(pattern),"FX_EQ%s%s",eq_bandstr[bandtype],eq_parmtypestr[parmtype]);
+
+      char buf[256];
+      snprintf(buf,sizeof(buf),"%s%s",valstr,parmtype==0 ? "Hz" : parmtype == 1 ? "dB" : "");
+
+      int wc[2] = { bandidx, tridx };
+      if (iscureq) SetSurfaceVal(pattern, (isband ? wc : 0), (isband ? 1 : 0), 0, 0, &val, buf);
+      if (isbanktrackeq) SetSurfaceVal(pattern, (isband ? wc : wc+1), (isband ? 2 : 1), 0, 0, &val, buf);
+      if (isband && bandidx < 8) return (6+bandidx)*3 + parmtype;
+      return bandtype * 3 + parmtype;
+    }
+    return -1;
   }
 
   int Extended(int call, void* parm1, void* parm2, void* parm3)
@@ -4196,30 +4242,7 @@ public:
 
           if (iscureq || isbanktrackeq)
           {
-            int bandtype=-1;
-            int bandidx=0;
-            int parmtype=-1;
-            if (TrackFX_GetEQParam(tr, fxidx, parmidx, &bandtype, &bandidx, &parmtype, 0))
-            {
-              char pattern[512];
-              strcpy(pattern, "FX_EQ");
-
-              if (bandtype < 0 || bandtype >= 6) bandtype=2;
-              static const char* bandstr[6] = { "_HIPASS", "_LOSHELF", "_BAND", "_NOTCH", "_HISHELF", "_LOPASS" };
-              strcat(pattern, bandstr[bandtype]);
-              bool isband = (bandtype == 2);
-
-              if (parmtype < 0 || parmtype >= 3) parmtype=0;
-              static const char* parmtypestr[3] = { "_FREQ", "_GAIN", "_Q" };
-              strcat(pattern, parmtypestr[parmtype]);
-
-              if (parmtype == 0) strcat(buf, "Hz");
-              else if (parmtype == 1) strcat(buf, "dB");
-
-              int wc[2] = { bandidx, tidx-m_curbankstart };              
-              if (iscureq) SetSurfaceVal(pattern, (isband ? wc : 0), (isband ? 1 : 0), 0, 0, &val, buf);
-              if (isbanktrackeq) SetSurfaceVal(pattern, (isband ? wc : wc+1), (isband ? 2 : 1), 0, 0, &val, buf);
-            }
+            SendEQParamMessage(tr,fxidx,parmidx, tidx-m_curbankstart, iscureq, isbanktrackeq, val, buf);
           }
 
           if (iscurfx || isbanktrackfx)
