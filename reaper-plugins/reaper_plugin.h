@@ -657,6 +657,7 @@ typedef struct _REAPER_inline_positioninfo
   void *extraParms[8];
   // WM_KEYDOWN handlers can use MSG *msg = (MSG *)extraParms[0]
   // WM_SETCURSOR handlers should set *extraParms[0] = hcursor
+  // WM_PAINT: (int)(INT_PTR)extraParms[0] is flags, &1= continuous scroll active, don't draw decorations/etc
 } REAPER_inline_positioninfo;
 
 
