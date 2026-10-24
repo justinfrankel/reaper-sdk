@@ -602,6 +602,9 @@ void PCM_source_mp3::PooledGetSamples(PCM_source_transfer_t *block, PooledDecode
     INT64 maxs  = (m_filepool->extraInfo->GetLengthSamples(m_adjustLatency) - poolreadinst->m_decode_srcsplpos);
 
     if (maxs<0)maxs=0;
+    if (!maxs)
+      poolreadinst->m_lastpos += len; // out of samples, advance lastpos to avoid constant seeking
+
     if (samples_read > maxs) samples_read = (int)maxs;
     if (samples_read > len) samples_read=len;
     poolreadinst->m_decode_srcsplpos+=samples_read;
